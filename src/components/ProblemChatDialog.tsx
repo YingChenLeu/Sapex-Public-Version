@@ -381,59 +381,100 @@ export const ProblemChatDialog = ({
                 </div>
               </DialogHeader>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-[#0d1019]">
-                {messages.map((message) => {
-                  const isOwn = message.user.uid === currentUser?.uid;
+              <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-5 space-y-1 custom-scrollbar bg-[#0d1019]">
+                {messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center text-sm text-gray-500">
+                    <p className="text-gray-400">No messages yet</p>
+                    <p className="mt-1 max-w-xs text-xs text-gray-600">
+                      Say hello and share how you can help — messages appear here
+                      as bubbles.
+                    </p>
+                  </div>
+                )}
+                {messages.map((message, idx) => {
+                  const senderUid = message.user?.uid;
+                  const isOwn =
+                    !!currentUser?.uid && senderUid === currentUser.uid;
                   const displayName = isOwn ? "You" : message.user.name;
+                  const prev = messages[idx - 1];
+                  const showAvatar =
+                    !prev || prev.user?.uid !== senderUid || idx === 0;
+                  const compactTop = !showAvatar && idx > 0;
+
                   return (
-                    <div
+                    <motion.div
                       key={message.id}
-                      className={`flex items-start gap-3 ${
-                        isOwn ? "flex-row-reverse text-right" : ""
-                      }`}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.18 }}
+                      className={`flex items-end gap-2.5 ${
+                        isOwn ? "flex-row-reverse" : ""
+                      } ${compactTop ? "mt-0.5" : "mt-3"}`}
                     >
-                      <Avatar
-                        className={`h-8 w-8 mt-0.5 ${
-                          isOwn ? "ml-1 ring-2 ring-discord-primary/70" : ""
-                        }`}
-                      >
-                        {message.user.avatar ? (
-                          <AvatarImage
-                            src={message.user.avatar}
-                            alt={message.user.name}
-                          />
-                        ) : (
-                          <AvatarFallback className="bg-discord-primary/80 text-white">
-                            <CircleUserRound className="w-4 h-4" />
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
                       <div
-                        className={`flex flex-col max-w-[75%] ${
+                        className={`flex-shrink-0 w-8 ${showAvatar ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                        aria-hidden={!showAvatar}
+                      >
+                        {showAvatar ? (
+                          <Avatar
+                            className={`h-8 w-8 ring-2 ring-black/25 ${
+                              isOwn
+                                ? "ring-emerald-400/20"
+                                : "ring-violet-400/20"
+                            }`}
+                          >
+                            {message.user.avatar ? (
+                              <AvatarImage
+                                src={message.user.avatar}
+                                alt={message.user.name || "User"}
+                              />
+                            ) : (
+                              <AvatarFallback className="bg-[#2a3142] text-gray-200">
+                                <CircleUserRound className="w-4 h-4" />
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                        ) : (
+                          <div className="h-8 w-8" />
+                        )}
+                      </div>
+                      <div
+                        className={`flex flex-col min-w-0 max-w-[min(85%,28rem)] ${
                           isOwn ? "items-end" : "items-start"
                         }`}
                       >
-                        <div className="flex items-baseline gap-2 mb-1 text-xs">
-                          <span className="font-semibold text-white truncate">
-                            {displayName}
-                          </span>
-                          <span className="text-gray-400">
-                            {message.createdAt?.seconds
-                              ? dayjs.unix(message.createdAt.seconds).fromNow()
-                              : "just now"}
-                          </span>
-                        </div>
+                        {showAvatar && (
+                          <div
+                            className={`flex items-baseline gap-2 mb-1 px-1 text-[11px] ${
+                              isOwn ? "flex-row-reverse" : ""
+                            }`}
+                          >
+                            <span className="font-semibold text-gray-200 truncate max-w-[12rem]">
+                              {displayName}
+                            </span>
+                            <span className="tabular-nums text-gray-500 shrink-0">
+                              {message.createdAt?.seconds
+                                ? dayjs
+                                    .unix(message.createdAt.seconds)
+                                    .fromNow()
+                                : "now"}
+                            </span>
+                          </div>
+                        )}
                         <div
-                          className={`rounded-2xl px-4 py-2 text-sm w-fit max-w-full break-words shadow-sm ${
+                          className={[
+                            "relative px-3.5 py-2.5 text-[0.9375rem] leading-relaxed w-fit max-w-full",
+                            "rounded-[1.35rem] break-words whitespace-pre-wrap text-gray-200",
+                            "bg-transparent border",
                             isOwn
-                              ? "bg-discord-primary text-white rounded-br-sm"
-                              : "bg-[#171b26] text-gray-100 rounded-bl-sm"
-                          }`}
+                              ? "rounded-br-[0.65rem] border-emerald-400/35 text-gray-200 shadow-[0_0_22px_-10px_rgba(52,211,153,0.32)]"
+                              : "rounded-bl-[0.65rem] border-violet-400/30 text-gray-200 shadow-[0_0_22px_-10px_rgba(167,139,250,0.25)]",
+                          ].join(" ")}
                         >
                           {message.content}
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
                 {typingUsers.length > 0 && (

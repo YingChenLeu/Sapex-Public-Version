@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSidebar } from "../components/SideBar";
 import { ProblemChatDialog } from "./ProblemChatDialog";
 import { HelpBoardCard } from "./HelpBoardCard";
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { collection, onSnapshot, getDoc, doc } from "firebase/firestore";
 import Dropdown from "./Dropdown";
@@ -45,9 +45,11 @@ const HelpBoard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [, setLoading] = useState(true);
+  const openedProblemFromQuery = useRef(false);
 
   const { collapsed } = useSidebar();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const fetchUserProfilePicture = async () => {
@@ -106,6 +108,21 @@ const HelpBoard = () => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const pid = searchParams.get("problem");
+    if (!pid) {
+      openedProblemFromQuery.current = false;
+      return;
+    }
+    if (problems.length === 0 || openedProblemFromQuery.current) return;
+    const match = problems.find((p) => p.id === pid);
+    if (match) {
+      openedProblemFromQuery.current = true;
+      setSelectedProblem(match);
+      setIsDialogOpen(true);
+    }
+  }, [problems, searchParams]);
+
   const handleHelpClick = (problem: Problem) => {
     setSelectedProblem(problem);
     setIsDialogOpen(true);
@@ -114,6 +131,11 @@ const HelpBoard = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setSelectedProblem(null);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("problem");
+      return next;
+    });
   };
 
   const filteredProblems = problems.filter((problem) =>
