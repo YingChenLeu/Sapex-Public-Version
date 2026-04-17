@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { AtSign, Smile, Trash, CircleUserRound } from "lucide-react";
+import { AtSign, Smile, Trash, CircleUserRound, Loader2 } from "lucide-react";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { Sigma } from "lucide-react";
 import {
@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { db, app } from "@/lib/firebase";
 import { getStorage, ref, deleteObject } from "firebase/storage";
@@ -32,7 +34,152 @@ import { getAuth } from "firebase/auth";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { AnimatePresence, motion } from "framer-motion";
+import { MessageMathContent } from "@/components/MessageMathContent";
 dayjs.extend(relativeTime);
+
+/** Escape `{` / `}` so user text inside our LaTeX templates cannot break delimiters. */
+function escapeForEmbeddedMath(s: string): string {
+  return s.replace(/\{/g, "\\{").replace(/\}/g, "\\}");
+}
+
+type MathParamField = {
+  key: string;
+  label: string;
+  default: string;
+  placeholder?: string;
+  maxLength?: number;
+};
+
+type MathSnippetDef =
+  | { id: string; label: string; simple: true; value: string }
+  | {
+      id: string;
+      label: string;
+      simple: false;
+      builderTitle: string;
+      fields: MathParamField[];
+      build: (values: Record<string, string>) => string;
+      /** Plain-language hint under the title (no LaTeX). */
+      builderHint?: string;
+    };
+
+const MATH_SNIPPET_DEFS: MathSnippetDef[] = [
+  {
+    id: "integral",
+    label: "∫",
+    simple: false,
+    builderTitle: "Integral",
+    builderHint:
+      "UB: upper limit · LB: lower limit. Leave both blank for a plain integral, or fill both for a definite integral.",
+    fields: [
+      {
+        key: "lb",
+        label: "LB",
+        default: "",
+        placeholder: "Lower bound",
+        maxLength: 24,
+      },
+      {
+        key: "ub",
+        label: "UB",
+        default: "",
+        placeholder: "Upper bound",
+        maxLength: 24,
+      },
+    ],
+    build: (v) => {
+      const lb = escapeForEmbeddedMath((v.lb ?? "").trim());
+      const ub = escapeForEmbeddedMath((v.ub ?? "").trim());
+      if (lb && ub) {
+        return `$\\displaystyle\\int_{${lb}}^{${ub}}$`;
+      }
+      return "$\\displaystyle\\int$";
+    },
+  },
+  { id: "dx", label: "dx", simple: true, value: "$\\mathrm{d}x$" },
+  {
+    id: "dydx",
+    label: "dy/dx",
+    simple: true,
+    value: "$\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}$",
+  },
+  { id: "xsq", label: "x²", simple: true, value: "$x^2$" },
+  {
+    id: "sqrt",
+    label: "√",
+    simple: false,
+    builderTitle: "Square root",
+    fields: [
+      {
+        key: "inner",
+        label: "Inside the root",
+        default: "",
+        placeholder: "Expression",
+        maxLength: 64,
+      },
+    ],
+    build: (v) => {
+      const inner = escapeForEmbeddedMath((v.inner ?? "").trim());
+      const body = inner || "\\phantom{x}";
+      return `$\\sqrt{${body}}$`;
+    },
+  },
+  {
+    id: "lim",
+    label: "lim",
+    simple: false,
+    builderTitle: "Limit",
+    fields: [
+      {
+        key: "var",
+        label: "Variable",
+        default: "x",
+        placeholder: "x",
+        maxLength: 12,
+      },
+      {
+        key: "to",
+        label: "Goes to",
+        default: "0",
+        placeholder: "0, infinity, …",
+        maxLength: 32,
+      },
+    ],
+    build: (v) => {
+      const variable = escapeForEmbeddedMath((v.var ?? "x").trim()) || "x";
+      const approaches = escapeForEmbeddedMath((v.to ?? "0").trim()) || "0";
+      return `$\\lim\\limits_{${variable} \\to ${approaches}}$`;
+    },
+  },
+  {
+    id: "frac",
+    label: "a/b",
+    simple: false,
+    builderTitle: "Fraction",
+    fields: [
+      {
+        key: "num",
+        label: "Top",
+        default: "",
+        placeholder: "Top number",
+        maxLength: 64,
+      },
+      {
+        key: "den",
+        label: "Bottom",
+        default: "",
+        placeholder: "Bottom number",
+        maxLength: 64,
+      },
+    ],
+    build: (v) => {
+      const num = escapeForEmbeddedMath((v.num ?? "").trim()) || "\\phantom{0}";
+      const den = escapeForEmbeddedMath((v.den ?? "").trim()) || "\\phantom{0}";
+      return `$\\dfrac{${num}}{${den}}$`;
+    },
+  },
+  { id: "infty", label: "∞", simple: true, value: "$\\infty$" },
+];
 
 type Message = {
   id: string;
@@ -72,6 +219,10 @@ export const ProblemChatDialog = ({
   problem,
 }: ProblemChatDialogProps) => {
   const [showCalcBar, setShowCalcBar] = useState(false);
+  const [mathBuilderId, setMathBuilderId] = useState<string | null>(null);
+  const [mathBuilderFields, setMathBuilderFields] = useState<
+    Record<string, string>
+  >({});
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [activeUsers, setActiveUsers] = useState<number>(0);
@@ -85,9 +236,34 @@ export const ProblemChatDialog = ({
   const [cursorPosition, setCursorPosition] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const sendingRef = useRef(false);
+
+  const [isSending, setIsSending] = useState(false);
 
   const auth = getAuth();
   const currentUser = auth.currentUser;
+
+  useEffect(() => {
+    if (!isOpen) {
+      sendingRef.current = false;
+      setIsSending(false);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!showCalcBar) setMathBuilderId(null);
+  }, [showCalcBar]);
+
+  useEffect(() => {
+    if (!mathBuilderId) return;
+    const def = MATH_SNIPPET_DEFS.find((d) => d.id === mathBuilderId);
+    if (!def || def.simple) return;
+    const init: Record<string, string> = {};
+    def.fields.forEach((f) => {
+      init[f.key] = f.default;
+    });
+    setMathBuilderFields(init);
+  }, [mathBuilderId]);
 
   // Active users
   useEffect(() => {
@@ -196,43 +372,59 @@ export const ProblemChatDialog = ({
   }, [problem?.id, currentUser?.uid]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentUser) return;
+    const text = newMessage.trim();
+    if (!text || !currentUser) return;
+    if (sendingRef.current) return;
 
-    let avatar = null;
-    if (currentUser?.uid) {
-      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-      if (userDoc.exists()) {
-        avatar = userDoc.data().profilePicture || null;
+    sendingRef.current = true;
+    setIsSending(true);
+
+    try {
+      let avatar = null;
+      if (currentUser.uid) {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+          avatar = userDoc.data().profilePicture || null;
+        }
       }
+
+      await addDoc(collection(db, "problems", problem.id, "messages"), {
+        content: text,
+        createdAt: serverTimestamp(),
+        user: {
+          name: currentUser.displayName || "Anonymous",
+          avatar,
+          uid: currentUser.uid,
+        },
+      });
+
+      setNewMessage("");
+      setShowMentionList(false);
+      await deleteDoc(
+        doc(db, "problems", problem.id, "typing", currentUser.uid),
+      );
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
     }
-
-    await addDoc(collection(db, "problems", problem.id, "messages"), {
-      content: newMessage.trim(),
-      createdAt: serverTimestamp(),
-      user: {
-        name: currentUser.displayName || "Anonymous",
-        avatar,
-        uid: currentUser.uid,
-      },
-    });
-
-    setNewMessage("");
-    setShowMentionList(false);
-    await deleteDoc(doc(db, "problems", problem.id, "typing", currentUser.uid));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!currentUser) return;
 
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (sendingRef.current) return;
+      void handleSendMessage();
+      return;
+    }
+
     setDoc(doc(db, "problems", problem.id, "typing", currentUser.uid), {
       name: currentUser.displayName || "Someone",
       lastTyped: serverTimestamp(),
     });
-
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
     if (e.key === "Tab" && showMentionList) {
       e.preventDefault();
       if (mentionOptions.length > 0) {
@@ -253,6 +445,21 @@ export const ProblemChatDialog = ({
     setTimeout(() => {
       textAreaRef.current?.focus();
       const pos = lastAt + username.length + 2;
+      textAreaRef.current?.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  const insertLatexAtCursor = (latex: string) => {
+    const ta = textAreaRef.current;
+    const start = ta?.selectionStart ?? cursorPosition;
+    const end = ta?.selectionEnd ?? cursorPosition;
+    const text = newMessage;
+    const updatedText =
+      text.substring(0, start) + latex + text.substring(end);
+    setNewMessage(updatedText);
+    setTimeout(() => {
+      textAreaRef.current?.focus();
+      const pos = start + latex.length;
       textAreaRef.current?.setSelectionRange(pos, pos);
     }, 0);
   };
@@ -471,7 +678,7 @@ export const ProblemChatDialog = ({
                               : "rounded-bl-[0.65rem] border-violet-400/30 text-gray-200 shadow-[0_0_22px_-10px_rgba(167,139,250,0.25)]",
                           ].join(" ")}
                         >
-                          {message.content}
+                          <MessageMathContent content={message.content} />
                         </div>
                       </div>
                     </motion.div>
@@ -486,212 +693,335 @@ export const ProblemChatDialog = ({
                 <div ref={bottomRef} />
               </div>
 
-              <div className="p-4 border-t border-discord-border relative">
-                <Textarea
-                  ref={textAreaRef}
-                  value={newMessage}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const caret = e.target.selectionStart || 0;
-                    setNewMessage(value);
-                    setCursorPosition(caret);
-
-                    const textUntilCursor = value.slice(0, caret);
-                    const lastAt = textUntilCursor.lastIndexOf("@");
-
-                    if (lastAt !== -1) {
-                      const query = textUntilCursor.slice(lastAt + 1);
-                      if (query.length >= 0) {
-                        setMentionQuery(query);
-                        setShowMentionList(true);
-                      } else {
-                        setShowMentionList(false);
-                      }
-                    } else {
-                      setShowMentionList(false);
-                    }
-                  }}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  className="min-h-[44px] max-h-[50vh] w-full resize-none rounded-lg bg-discord-sidebar/90 border-none px-4 py-3 text-white placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-
-                {showMentionList && (
-                  <div className="absolute left-4 bottom-20 bg-[#1e212d] border border-gray-600 rounded-md mt-2 p-1 max-h-40 overflow-y-auto w-60 z-20">
-                    {mentionOptions
-                      .filter((option) =>
-                        option.name
-                          .toLowerCase()
-                          .includes(mentionQuery.toLowerCase()),
-                      )
-                      .map((option, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center px-2 py-1 hover:bg-blue-500 hover:text-white text-sm cursor-pointer"
-                          onClick={() => insertMention(option.name)}
-                        >
-                          {option.avatar ? (
-                            <Avatar className="h-5 w-5 mr-2">
-                              <AvatarImage
-                                src={option.avatar}
-                                alt={option.name}
-                              />
-                              <AvatarFallback>{option.name[0]}</AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            <div className="w-5 h-5 rounded-full bg-gray-500 flex items-center justify-center mr-2 text-xs">
-                              {option.name[0]}
-                            </div>
-                          )}
-                          @{option.name}
-                        </div>
-                      ))}
-                  </div>
-                )}
-
-                {showEmojiPicker && (
-                  <div className="absolute bottom-14 right-3 z-20">
-                    <EmojiPicker
-                      onEmojiClick={(emojiData) => {
-                        const emoji = emojiData.emoji;
-                        const start = textAreaRef.current?.selectionStart || 0;
-                        const end = textAreaRef.current?.selectionEnd || 0;
-                        const text = newMessage;
-                        const updatedText =
-                          text.substring(0, start) +
-                          emoji +
-                          text.substring(end);
-                        setNewMessage(updatedText);
-                        setTimeout(() => {
-                          textAreaRef.current?.focus();
-                          textAreaRef.current?.setSelectionRange(
-                            start + emoji.length,
-                            start + emoji.length,
-                          );
-                        }, 0);
-                      }}
-                      theme={Theme.DARK}
-                    />
-                  </div>
-                )}
-
-                <div className="absolute right-3 bottom-2.5 flex items-center space-x-2 text-muted-foreground">
-                  <button
-                    className="hover:text-white"
-                    onClick={() => {
-                      if (!textAreaRef.current) return;
-                      const start = textAreaRef.current.selectionStart || 0;
-                      const end = textAreaRef.current.selectionEnd || 0;
-                      const text = newMessage;
-                      const updatedText =
-                        text.substring(0, start) + "@" + text.substring(end);
-                      setNewMessage(updatedText);
-                      setTimeout(() => {
-                        textAreaRef.current?.focus();
-                        textAreaRef.current?.setSelectionRange(
-                          start + 1,
-                          start + 1,
-                        );
-                      }, 0);
-                    }}
-                  >
-                    <AtSign size={20} />
-                  </button>
-                  {problem.category.toLowerCase() === "mathematics" && (
-                    <>
-                      <button
-                        className="hover:text-white"
-                        onClick={() => setShowCalcBar((prev) => !prev)}
-                      >
-                        <Sigma size={20} />
-                      </button>
-                      {showCalcBar && (
-                        <div className="absolute bottom-12 right-0 bg-[#1e212d] p-2 rounded shadow-lg flex space-x-2 text-sm z-20">
-                          {[
-                            { label: "∫", value: "\\int" },
-                            { label: "dx", value: "dx" },
-                            { label: "dy/dx", value: "\\frac{dy}{dx}" },
-                            { label: "x²", value: "x^2" },
-                            { label: "√", value: "\\sqrt{}" },
-                            { label: "lim", value: "\\lim_{x \\to }" },
-                            { label: "∞", value: "∞" },
-                          ].map((item) => (
-                            <button
-                              key={item.label}
-                              className="bg-discord-sidebar hover:bg-discord-primary px-2 py-1 rounded"
-                              onClick={() => {
-                                const start =
-                                  textAreaRef.current?.selectionStart || 0;
-                                const end =
-                                  textAreaRef.current?.selectionEnd || 0;
-                                const text = newMessage;
-                                const updatedText =
-                                  text.substring(0, start) +
-                                  item.value +
-                                  text.substring(end);
-                                setNewMessage(updatedText);
-                                setTimeout(() => {
-                                  textAreaRef.current?.focus();
-                                  const pos = start + item.value.length;
-                                  textAreaRef.current?.setSelectionRange(
-                                    pos,
-                                    pos,
-                                  );
-                                }, 0);
-                              }}
-                            >
-                              {item.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </>
+              <div className="shrink-0 overflow-visible border-t border-white/[0.08] bg-[#11141d]/95 px-3 py-3 sm:px-4">
+                <div className="relative z-0 mx-auto max-w-full overflow-visible">
+                  {showMentionList && (
+                    <div className="absolute bottom-full left-0 z-30 mb-2 w-[min(100%,16rem)] max-h-40 overflow-y-auto rounded-xl border border-white/10 bg-[#1a1f2e] p-1 shadow-xl shadow-black/40 custom-scrollbar">
+                      {mentionOptions
+                        .filter((option) =>
+                          option.name
+                            .toLowerCase()
+                            .includes(mentionQuery.toLowerCase()),
+                        )
+                        .map((option, idx) => (
+                          <div
+                            key={idx}
+                            className="flex cursor-pointer items-center rounded-lg px-2 py-1.5 text-sm text-gray-200 hover:bg-white/10"
+                            onClick={() => insertMention(option.name)}
+                          >
+                            {option.avatar ? (
+                              <Avatar className="mr-2 h-5 w-5">
+                                <AvatarImage
+                                  src={option.avatar}
+                                  alt={option.name}
+                                />
+                                <AvatarFallback>{option.name[0]}</AvatarFallback>
+                              </Avatar>
+                            ) : (
+                              <div className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-xs">
+                                {option.name[0]}
+                              </div>
+                            )}
+                            @{option.name}
+                          </div>
+                        ))}
+                    </div>
                   )}
 
-                  <button
-                    className="hover:text-white"
-                    onClick={() => setShowEmojiPicker((prev) => !prev)}
-                  >
-                    <Smile size={20} />
-                  </button>
-
-                  <button
-                    disabled={!newMessage.trim()}
-                    type="submit"
-                    onClick={handleSendMessage}
-                    className="h-8 w-8 ml-2 rounded-full disabled:bg-zinc-700 bg-discord-primary hover:bg-discord-primary/90 transition duration-200 flex items-center justify-center"
-                  >
-                    <motion.svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-gray-300 h-4 w-4"
-                    >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <motion.path
-                        d="M5 12l14 0"
-                        initial={{
-                          strokeDasharray: "50%",
-                          strokeDashoffset: "50%",
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-full right-0 z-30 mb-2 max-h-[min(50vh,320px)] overflow-hidden rounded-xl border border-white/10 shadow-xl shadow-black/40">
+                      <EmojiPicker
+                        onEmojiClick={(emojiData) => {
+                          const emoji = emojiData.emoji;
+                          const start =
+                            textAreaRef.current?.selectionStart || 0;
+                          const end = textAreaRef.current?.selectionEnd || 0;
+                          const text = newMessage;
+                          const updatedText =
+                            text.substring(0, start) +
+                            emoji +
+                            text.substring(end);
+                          setNewMessage(updatedText);
+                          setShowEmojiPicker(false);
+                          setTimeout(() => {
+                            textAreaRef.current?.focus();
+                            textAreaRef.current?.setSelectionRange(
+                              start + emoji.length,
+                              start + emoji.length,
+                            );
+                          }, 0);
                         }}
-                        animate={{
-                          strokeDashoffset: newMessage.trim() ? 0 : "50%",
-                        }}
-                        transition={{
-                          duration: 0.3,
-                          ease: "linear",
-                        }}
+                        theme={Theme.DARK}
                       />
-                      <path d="M13 18l6 -6" />
-                      <path d="M13 6l6 6" />
-                    </motion.svg>
-                  </button>
+                    </div>
+                  )}
+
+                  <div className="overflow-visible rounded-xl border border-white/[0.1] bg-[#0d1019] shadow-inner shadow-black/20 focus-within:border-[#7cdcbd]/35 focus-within:ring-2 focus-within:ring-[#7cdcbd]/20">
+                    <div className="overflow-hidden rounded-t-xl">
+                      <Textarea
+                        ref={textAreaRef}
+                        value={newMessage}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const caret = e.target.selectionStart || 0;
+                          setNewMessage(value);
+                          setCursorPosition(caret);
+
+                          const textUntilCursor = value.slice(0, caret);
+                          const lastAt = textUntilCursor.lastIndexOf("@");
+
+                          if (lastAt !== -1) {
+                            const query = textUntilCursor.slice(lastAt + 1);
+                            if (query.length >= 0) {
+                              setMentionQuery(query);
+                              setShowMentionList(true);
+                            } else {
+                              setShowMentionList(false);
+                            }
+                          } else {
+                            setShowMentionList(false);
+                          }
+                        }}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Message…"
+                        disabled={isSending}
+                        rows={1}
+                        className="max-h-[min(40vh,240px)] min-h-[52px] w-full resize-none rounded-none border-0 bg-transparent px-3.5 py-3 text-[15px] leading-relaxed text-gray-100 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-60 sm:px-4 sm:text-[0.9375rem]"
+                      />
+                    </div>
+
+                    <div className="relative z-10 flex items-center gap-2 overflow-visible rounded-b-xl border-t border-white/[0.06] bg-[#0a0c12]/90 px-2 py-1.5 sm:px-3">
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-0.5 sm:gap-1">
+                        <button
+                          type="button"
+                          className="rounded-lg p-2 text-gray-400 transition hover:bg-white/[0.06] hover:text-white"
+                          title="Mention"
+                          onClick={() => {
+                            if (!textAreaRef.current) return;
+                            const start =
+                              textAreaRef.current.selectionStart || 0;
+                            const end = textAreaRef.current.selectionEnd || 0;
+                            const text = newMessage;
+                            const updatedText =
+                              text.substring(0, start) +
+                              "@" +
+                              text.substring(end);
+                            setNewMessage(updatedText);
+                            setTimeout(() => {
+                              textAreaRef.current?.focus();
+                              textAreaRef.current?.setSelectionRange(
+                                start + 1,
+                                start + 1,
+                              );
+                            }, 0);
+                          }}
+                        >
+                          <AtSign className="h-[18px] w-[18px]" />
+                        </button>
+                        {problem.category.toLowerCase() === "mathematics" && (
+                          <div className="relative z-20">
+                            <button
+                              type="button"
+                              className="rounded-lg p-2 text-gray-400 transition hover:bg-white/[0.06] hover:text-white"
+                              title="Insert math"
+                              onClick={() => {
+                                setShowEmojiPicker(false);
+                                setShowCalcBar((prev) => !prev);
+                              }}
+                            >
+                              <Sigma className="h-[18px] w-[18px]" />
+                            </button>
+                            {showCalcBar && (
+                              <div
+                                className={`absolute bottom-full left-0 z-[60] mb-2 flex flex-col gap-2 rounded-xl border border-white/10 bg-[#1a1f2e] p-2.5 shadow-2xl shadow-black/50 ${
+                                  mathBuilderId
+                                    ? "max-w-[min(100vw-2rem,28rem)] min-w-[min(100vw-2rem,20rem)]"
+                                    : "max-w-[min(100vw-2rem,22rem)]"
+                                }`}
+                              >
+                                <div className="flex flex-wrap gap-1">
+                                  {MATH_SNIPPET_DEFS.map((item) => (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      className={`rounded-md px-2 py-1 text-xs text-gray-200 hover:bg-[#7cdcbd]/20 hover:text-white ${
+                                        mathBuilderId === item.id
+                                          ? "bg-[#7cdcbd]/25 ring-1 ring-[#7cdcbd]/40"
+                                          : "bg-white/[0.06]"
+                                      }`}
+                                      onClick={() => {
+                                        if (item.simple) {
+                                          setMathBuilderId(null);
+                                          insertLatexAtCursor(item.value);
+                                          setShowCalcBar(false);
+                                        } else {
+                                          setMathBuilderId((prev) =>
+                                            prev === item.id ? null : item.id,
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      {item.label}
+                                    </button>
+                                  ))}
+                                </div>
+                                {mathBuilderId &&
+                                  (() => {
+                                    const def = MATH_SNIPPET_DEFS.find(
+                                      (d) => d.id === mathBuilderId,
+                                    );
+                                    if (!def || def.simple) return null;
+                                    return (
+                                      <div className="mt-2 space-y-2 border-t border-white/10 pt-2.5">
+                                        <p className="text-xs font-medium text-gray-200">
+                                          {def.builderTitle}
+                                        </p>
+                                        {def.builderHint ? (
+                                          <p className="text-[11px] leading-relaxed text-gray-500">
+                                            {def.builderHint}
+                                          </p>
+                                        ) : null}
+                                        <div className="grid gap-2 sm:grid-cols-2">
+                                          {def.fields.map((f) => (
+                                            <div
+                                              key={f.key}
+                                              className="space-y-1 sm:col-span-1"
+                                            >
+                                              <Label
+                                                htmlFor={`math-${def.id}-${f.key}`}
+                                                className="text-[11px] text-gray-400"
+                                              >
+                                                {f.label}:
+                                              </Label>
+                                              <Input
+                                                id={`math-${def.id}-${f.key}`}
+                                                value={
+                                                  mathBuilderFields[f.key] ??
+                                                  ""
+                                                }
+                                                onChange={(e) =>
+                                                  setMathBuilderFields(
+                                                    (prev) => ({
+                                                      ...prev,
+                                                      [f.key]: e.target.value,
+                                                    }),
+                                                  )
+                                                }
+                                                placeholder={f.placeholder}
+                                                maxLength={f.maxLength}
+                                                className="h-8 border-white/10 bg-black/25 text-xs text-gray-100 placeholder:text-gray-600 focus-visible:ring-[#7cdcbd]/30"
+                                              />
+                                            </div>
+                                          ))}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            className="h-8 bg-[#7cdcbd] text-xs text-[#0a0d17] hover:bg-[#5fbfaa]"
+                                            onClick={() => {
+                                              const built = def.build(
+                                                mathBuilderFields,
+                                              );
+                                              insertLatexAtCursor(built);
+                                              setMathBuilderId(null);
+                                              setShowCalcBar(false);
+                                            }}
+                                          >
+                                            Insert
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 text-xs text-gray-400 hover:bg-white/[0.06] hover:text-white"
+                                            onClick={() =>
+                                              setMathBuilderId(null)
+                                            }
+                                          >
+                                            Cancel
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className="rounded-lg p-2 text-gray-400 transition hover:bg-white/[0.06] hover:text-white"
+                          title="Emoji"
+                          onClick={() => {
+                            setShowCalcBar(false);
+                            setShowEmojiPicker((prev) => !prev);
+                          }}
+                        >
+                          <Smile className="h-[18px] w-[18px]" />
+                        </button>
+                      </div>
+
+                      <p className="hidden shrink-0 text-[10px] text-gray-600 sm:block md:text-[11px]">
+                        <kbd className="rounded border border-white/10 bg-white/[0.04] px-1 py-0.5 font-mono text-[9px] text-gray-500">
+                          Enter
+                        </kbd>{" "}
+                        send ·{" "}
+                        <kbd className="rounded border border-white/10 bg-white/[0.04] px-1 py-0.5 font-mono text-[9px] text-gray-500">
+                          Shift+Enter
+                        </kbd>{" "}
+                        new line
+                      </p>
+
+                      <button
+                        type="button"
+                        disabled={!newMessage.trim() || isSending}
+                        onClick={() => void handleSendMessage()}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#7cdcbd] text-[#0a0d17] transition hover:bg-[#5fbfaa] disabled:bg-zinc-700 disabled:text-zinc-400"
+                        aria-label={isSending ? "Sending…" : "Send message"}
+                      >
+                        {isSending ? (
+                          <Loader2
+                            className="h-4 w-4 animate-spin text-[#0a0d17]"
+                            aria-hidden
+                          />
+                        ) : (
+                          <motion.svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-[18px] w-[18px]"
+                          >
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <motion.path
+                              d="M5 12l14 0"
+                              initial={{
+                                strokeDasharray: "50%",
+                                strokeDashoffset: "50%",
+                              }}
+                              animate={{
+                                strokeDashoffset: newMessage.trim()
+                                  ? 0
+                                  : "50%",
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                ease: "linear",
+                              }}
+                            />
+                            <path d="M13 18l6 -6" />
+                            <path d="M13 6l6 6" />
+                          </motion.svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
