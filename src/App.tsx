@@ -32,7 +32,7 @@ import { OriginsLab } from "./components/OriginsLab";
 import { useLocation } from "react-router-dom";
 
 const APP_NAME = "Sapex";
-const LANDING_TAB_TITLE = "Sapex Connect";
+const LANDING_TAB_TITLE = "Sapex Connect – Student Collaboration Platform";
 
 const getPageTitle = (pathname: string) => {
   if (pathname === "/") return LANDING_TAB_TITLE;

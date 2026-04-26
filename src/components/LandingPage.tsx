@@ -175,6 +175,18 @@ function TechCard({
 function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0A0D17] text-[#D8DEDE] flex flex-col">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Sapex Connect",
+            url: "https://www.sapexconnect.com",
+          }),
+        }}
+      />
       {/* Top half: hero + spinning “Sapex builds communities” + trust bar */}
       <motion.section
         className="relative w-full overflow-hidden pt-24 sm:pt-32 pb-10 sm:pb-12 px-4 sm:px-6 md:px-8"
@@ -218,7 +230,7 @@ function LandingPage() {
                   className="w-16 h-16 sm:w-24 sm:h-24 opacity-95 shrink-0"
                 />
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-[#D8DEDE] to-[#A8D3CC] bg-clip-text text-transparent font-syncopate">
-                  Sapex
+                  Sapex Connect
                 </h1>
               </motion.div>
               <motion.h2
@@ -244,6 +256,11 @@ function LandingPage() {
               >
                 Multi-use Support Platform for Teenagers and Young Adults
               </motion.p>
+              <p className="mt-4 text-sm sm:text-base text-[#D8DEDE]/80 max-w-xl leading-relaxed">
+                Sapex Connect is a student collaboration platform with guided study rooms and peer
+                academic help — so students can learn together, ask questions, and get support from
+                their school community.
+              </p>
             </div>
 
             <motion.div
