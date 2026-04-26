@@ -32,9 +32,10 @@ import { OriginsLab } from "./components/OriginsLab";
 import { useLocation } from "react-router-dom";
 
 const APP_NAME = "Sapex";
+const LANDING_TAB_TITLE = "Sapex Connect";
 
 const getPageTitle = (pathname: string) => {
-  if (pathname === "/") return "Landing";
+  if (pathname === "/") return LANDING_TAB_TITLE;
   if (pathname === "/main") return "Control Center";
   if (pathname === "/helpboard") return "Academic Center";
   if (pathname === "/post-problem") return "Post a Problem";
@@ -61,7 +62,10 @@ const DocumentTitleManager = () => {
 
   useEffect(() => {
     const pageTitle = getPageTitle(location.pathname);
-    document.title = pageTitle === APP_NAME ? APP_NAME : `${pageTitle} | ${APP_NAME}`;
+    document.title =
+      pageTitle === APP_NAME || pageTitle === LANDING_TAB_TITLE
+        ? pageTitle
+        : `${pageTitle} | ${APP_NAME}`;
   }, [location.pathname]);
 
   return null;
