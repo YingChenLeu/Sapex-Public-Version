@@ -114,7 +114,7 @@ const AdminManagement = () => {
   return (
     <div
       className={`min-h-screen bg-gray-50 p-6 ${
-        collapsed ? "pl-[130px]" : "pl-[280px]"
+        collapsed ? "pl-[74px] sm:pl-[96px]" : "pl-[220px] xl:pl-[280px]"
       } transition-all duration-300`}
     >
       <div className="max-w-7xl mx-auto">

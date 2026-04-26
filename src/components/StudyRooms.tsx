@@ -208,7 +208,7 @@ const StudyRooms = () => {
   return (
     <div
       className={`bg-[#0A0D17] pt-[30px] min-h-screen pb-16 transition-all duration-300 ${
-        collapsed ? "pl-[130px]" : "pl-[280px]"
+        collapsed ? "pl-[74px] sm:pl-[96px]" : "pl-[220px] xl:pl-[280px]"
       }`}
     >
       <div className="px-4 max-w-4xl">

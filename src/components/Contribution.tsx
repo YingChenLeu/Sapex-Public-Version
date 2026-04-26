@@ -114,7 +114,7 @@ const Contributions = () => {
   return (
     <div
       className={`bg-[#0A0D17] min-h-screen transition-all duration-300 ${
-        collapsed ? "pl-[100px]" : "pl-[280px]"
+        collapsed ? "pl-[74px] sm:pl-[92px]" : "pl-[220px] xl:pl-[280px]"
       }`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-16">

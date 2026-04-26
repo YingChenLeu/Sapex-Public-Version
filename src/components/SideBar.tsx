@@ -21,6 +21,7 @@ import { auth } from "@/lib/firebase";
 const SidebarContext = createContext<{
   collapsed: boolean;
   toggleCollapsed: () => void;
+  isSmallScreen: boolean;
 } | null>(null);
 
 export const SidebarProvider = ({
@@ -29,10 +30,30 @@ export const SidebarProvider = ({
   children: React.ReactNode;
 }) => {
   const [collapsed, setCollapsed] = useState(true);
-  const toggleCollapsed = () => setCollapsed((prev) => !prev);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 900px)");
+    const updateScreenSize = () => setIsSmallScreen(mediaQuery.matches);
+
+    updateScreenSize();
+    mediaQuery.addEventListener("change", updateScreenSize);
+    return () => mediaQuery.removeEventListener("change", updateScreenSize);
+  }, []);
+
+  useEffect(() => {
+    if (isSmallScreen) {
+      setCollapsed(true);
+    }
+  }, [isSmallScreen]);
+
+  const toggleCollapsed = () => {
+    if (isSmallScreen) return;
+    setCollapsed((prev) => !prev);
+  };
 
   return (
-    <SidebarContext.Provider value={{ collapsed, toggleCollapsed }}>
+    <SidebarContext.Provider value={{ collapsed, toggleCollapsed, isSmallScreen }}>
       {children}
     </SidebarContext.Provider>
   );
@@ -57,7 +78,7 @@ const navItems = [
 function SideBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { collapsed, toggleCollapsed } = useSidebar();
+  const { collapsed, toggleCollapsed, isSmallScreen } = useSidebar();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const isMain = location.pathname === "/main";
@@ -88,7 +109,7 @@ function SideBar() {
       <aside
         className={`fixed top-0 left-0 z-[100] h-screen flex flex-col
           ${isMain ? "bg-transparent" : "bg-[#0D1117]"} border-r border-white/[0.06]
-          ${collapsed ? "w-[80px]" : "w-[240px]"}`}
+          ${collapsed ? "w-[72px] sm:w-[80px]" : "w-[220px] xl:w-[240px]"}`}
         style={{
           transition: "width 400ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
@@ -176,24 +197,26 @@ function SideBar() {
         </nav>
 
         {/* Collapse toggle */}
-        <div
-          className={`shrink-0 border-t border-white/[0.06] flex items-center ${
-            collapsed ? "justify-center py-3" : "justify-end pr-2 py-3"
-          }`}
-        >
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/[0.06] transition-colors duration-300 ease-out"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        {!isSmallScreen && (
+          <div
+            className={`shrink-0 border-t border-white/[0.06] flex items-center ${
+              collapsed ? "justify-center py-3" : "justify-end pr-2 py-3"
+            }`}
           >
-            {collapsed ? (
-              <ChevronRight className="w-4 h-4" strokeWidth={2} />
-            ) : (
-              <ChevronLeft className="w-4 h-4" strokeWidth={2} />
-            )}
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/[0.06] transition-colors duration-300 ease-out"
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {collapsed ? (
+                <ChevronRight className="w-4 h-4" strokeWidth={2} />
+              ) : (
+                <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Bottom: Admin + Logout */}
         <div className="shrink-0 border-t border-white/[0.06] py-3 px-2 space-y-0.5">

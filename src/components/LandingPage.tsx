@@ -7,7 +7,14 @@ import MetaBalls from "./ui/MetaBalls";
 import FloatingLines from "./ui/FloatingLines";
 import SoftAurora from "./ui/SoftAurora";
 import BorderGlow from "./ui/BorderGlow";
+import MemoriesBento from "./ui/MemoriesBento";
 import CircularText from "./CircularText";
+import {
+  AcademicHubDemo,
+  WellnessDemo,
+  StudyRoomsDemo,
+  OriginsLabDemo,
+} from "./ui/FeatureShowcase";
 import firebaseLogo from "@/assets/landingPageAssets/devLogos/firebase.png";
 import fastAPILogo from "@/assets/landingPageAssets/devLogos/fastAPI.png";
 import vercelLogo from "@/assets/landingPageAssets/devLogos/vercel.png";
@@ -142,13 +149,13 @@ function TechCard({
         colors={["#A8D3CC", "#45f56e", "#2D4F53"]}
         fillOpacity={0.25}
       >
-        <div className="p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-center shrink-0 min-h-[80px]">
+        <div className="p-5 sm:p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-center shrink-0 min-h-[72px] sm:min-h-[80px]">
             {logoEl}
           </div>
           <div className="min-w-0 flex-1">
             <motion.h3
-              className="font-semibold text-[#D8DEDE] mb-2 text-lg"
+              className="font-semibold text-[#D8DEDE] mb-2 text-base sm:text-lg"
               initial={false}
               whileHover={{ color: "#A8D3CC" }}
               transition={{ duration: 0.2 }}
@@ -170,7 +177,7 @@ function LandingPage() {
     <div className="min-h-screen bg-[#0A0D17] text-[#D8DEDE] flex flex-col">
       {/* Top half: hero + spinning “Sapex builds communities” + trust bar */}
       <motion.section
-        className="relative w-full overflow-hidden pt-32 pb-12 px-4 sm:px-6 md:px-8"
+        className="relative w-full overflow-hidden pt-24 sm:pt-32 pb-10 sm:pb-12 px-4 sm:px-6 md:px-8"
         initial="hidden"
         animate="visible"
         variants={{
@@ -208,14 +215,14 @@ function LandingPage() {
                 <img
                   src={Logo}
                   alt="Sapex Logo"
-                  className="w-20 h-20 sm:w-24 sm:h-24 opacity-95 shrink-0"
+                  className="w-16 h-16 sm:w-24 sm:h-24 opacity-95 shrink-0"
                 />
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-[#D8DEDE] to-[#A8D3CC] bg-clip-text text-transparent font-syncopate">
                   Sapex
                 </h1>
               </motion.div>
               <motion.h2
-                className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#D8DEDE] mb-6 leading-tight"
+                className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#D8DEDE] mb-5 sm:mb-6 leading-tight"
                 variants={{
                   hidden: { opacity: 0, y: 20 },
                   visible: { opacity: 1, y: 0 },
@@ -228,7 +235,7 @@ function LandingPage() {
                 </span>
               </motion.h2>
               <motion.p
-                className="text-lg md:text-xl text-[#D8DEDE]/90 max-w-xl leading-relaxed"
+                className="text-base sm:text-lg md:text-xl text-[#D8DEDE]/90 max-w-xl leading-relaxed"
                 variants={{
                   hidden: { opacity: 0, y: 16 },
                   visible: { opacity: 1, y: 0 },
@@ -240,7 +247,7 @@ function LandingPage() {
             </div>
 
             <motion.div
-              className="relative w-full aspect-square max-w-md mx-auto lg:max-w-none lg:mx-0 h-[280px] sm:h-[320px] lg:h-[340px] order-1 lg:order-2"
+              className="relative w-full aspect-square max-w-md mx-auto lg:max-w-none lg:mx-0 h-[240px] sm:h-[320px] lg:h-[340px] order-1 lg:order-2"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -260,19 +267,21 @@ function LandingPage() {
                 />
               </div>
               <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-                <CircularText
-                  text="SAPEX BUILDS COMMUNITIES "
-                  onHover="goBonkers"
-                  spinDuration={30}
-                  className="custom-class"
-                />
+                <div className="scale-[0.82] sm:scale-100 origin-center">
+                  <CircularText
+                    text="SAPEX BUILDS COMMUNITIES "
+                    onHover="goBonkers"
+                    spinDuration={30}
+                    className="custom-class"
+                  />
+                </div>
               </div>
             </motion.div>
           </div>
 
           {/* Row 2: Trust / affiliation */}
           <motion.div
-            className="relative z-10 mt-12 flex max-w-4xl flex-wrap items-center gap-x-8 gap-y-3"
+            className="relative z-10 mt-10 sm:mt-12 flex max-w-4xl flex-wrap items-center gap-x-6 sm:gap-x-8 gap-y-3"
             initial="hidden"
             animate="visible"
             variants={{
@@ -310,10 +319,11 @@ function LandingPage() {
       {/* Our Purpose & Organization */}
       <section
         id="about"
-        className="py-16 md:py-24 border-t border-white/5 bg-gradient-to-b from-transparent to-white/5"
+        className="relative overflow-hidden py-16 md:py-24 border-t border-white/5 bg-gradient-to-b from-transparent to-white/5"
       >
+        <MemoriesBento className="z-0" />
         <motion.div
-          className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center"
+          className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
@@ -342,7 +352,7 @@ function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* 3x3 grid: corners = cards, center = title + CTA */}
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-stretch"
+            className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 md:gap-8 items-stretch"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-80px", amount: 0.2 }}
@@ -373,7 +383,7 @@ function LandingPage() {
             />
             {/* Top-center: Key Technologies + View Code */}
             <motion.div
-              className="flex flex-col items-center justify-center rounded-2xl border-2 border-[#A8D3CC]/20 bg-[#0C111C]/90 p-8 md:min-h-[200px] order-first md:order-none col-span-1 md:col-span-1"
+              className="flex flex-col items-center justify-center rounded-2xl border-2 border-[#A8D3CC]/20 bg-[#0C111C]/90 p-6 sm:p-8 md:min-h-[200px] order-first md:order-none col-span-1 md:col-span-1"
               variants={{
                 hidden: { scale: 0.92, opacity: 0 },
                 visible: {
@@ -677,6 +687,132 @@ function LandingPage() {
               </motion.div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* Feature showcase — looping non-interactive UI demos */}
+      <section
+        id="showcase"
+        className="relative overflow-hidden border-t border-white/5 py-16 md:py-24"
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `
+              radial-gradient(ellipse 60% 40% at 12% 30%, rgba(124, 220, 189, 0.10), transparent 60%),
+              radial-gradient(ellipse 60% 40% at 88% 65%, rgba(167, 139, 250, 0.10), transparent 60%)
+            `,
+          }}
+        />
+        <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-12 md:mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="text-[#A8D3CC] font-medium tracking-wider text-xs sm:text-sm uppercase mb-3">
+              See Sapex in action
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Four places students show up for each other
+            </h2>
+            <p className="text-base sm:text-lg text-[#D8DEDE]/80 max-w-2xl mx-auto">
+              Looping previews of the real Sapex flows — Academic Center,
+              Wellness Support, Study Rooms, and Origins Lab.
+            </p>
+          </motion.div>
+
+          <div className="space-y-16 md:space-y-24">
+            {[
+              {
+                eyebrow: "Academic Center",
+                title: "Ask anything. Get help from your school in minutes.",
+                copy: "Post a question on the Academic Center board, and verified peers from your community jump in. Threads support math notation, mentions, and reactions — so the learning sticks.",
+                bullets: [
+                  "Cards triaged by subject and urgency",
+                  "Real-time chat with mentions and math input",
+                  "Live presence shows who's around to help",
+                ],
+                Demo: AcademicHubDemo,
+                reverse: false,
+              },
+              {
+                eyebrow: "Wellness Support",
+                title: "Personality-matched peers when life gets heavy.",
+                copy: "Pick what you're working through. Our model finds a Sapex Helper whose temperament fits — calm, empathetic, and ready to listen — and opens a private chat that actually sounds like your friends.",
+                bullets: [
+                  "Match scores from a DEAP-trained model",
+                  "Private 1:1 conversations, anonymous by default",
+                  "Topics from burnout to new-student guidance",
+                ],
+                Demo: WellnessDemo,
+                reverse: true,
+              },
+              {
+                eyebrow: "Study Rooms",
+                title: "Drop into a study room and grind together.",
+                copy: "Spin up a focused video room around a subject or project. Share screens, raise hands, and stay accountable with classmates from your school.",
+                bullets: [
+                  "One-click rooms by subject or topic",
+                  "Hand-raise, mute, and live audio cues",
+                  "Stays inside your school's community",
+                ],
+                Demo: StudyRoomsDemo,
+                reverse: false,
+              },
+              {
+                eyebrow: "Origins Lab",
+                title: "Showcase your projects and brainstorm new ones.",
+                copy: "Pick a field — robotics, design, music, service — and Sapex hands you prompts plus a board to capture ideas. Post your extracurriculars so the rest of your school can see what you're building.",
+                bullets: [
+                  "14 fields from Fine Arts to Engineering",
+                  "Guided prompts for fresh project ideas",
+                  "Public showcase of what your peers are making",
+                ],
+                Demo: OriginsLabDemo,
+                reverse: true,
+              },
+            ].map(({ eyebrow, title, copy, bullets, Demo, reverse }) => (
+              <motion.div
+                key={eyebrow}
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14 items-center ${
+                  reverse ? "lg:[&>*:first-child]:order-2" : ""
+                }`}
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <div className="max-w-xl">
+                  <div className="text-[#A8D3CC] font-medium tracking-wider text-xs uppercase mb-3">
+                    {eyebrow}
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+                    {title}
+                  </h3>
+                  <p className="text-base sm:text-lg text-[#D8DEDE]/85 leading-relaxed mb-6">
+                    {copy}
+                  </p>
+                  <ul className="space-y-2.5">
+                    {bullets.map((b) => (
+                      <li
+                        key={b}
+                        className="flex items-start gap-2.5 text-sm sm:text-base text-[#D8DEDE]/80"
+                      >
+                        <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[#A8D3CC] shrink-0" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="flex items-center justify-center">
+                  <Demo />
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

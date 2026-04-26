@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpenText, Eclipse, Codesandbox, Video } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useSidebar } from "./SideBar";
 
 const ORBIT_RADIUS = 160;
@@ -43,11 +44,26 @@ const orbitalItems = [
 
 const Main = () => {
   const { collapsed } = useSidebar();
+  const [isCompactLayout, setIsCompactLayout] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 900px)");
+    const updateLayout = () => setIsCompactLayout(mediaQuery.matches);
+
+    updateLayout();
+    mediaQuery.addEventListener("change", updateLayout);
+    return () => mediaQuery.removeEventListener("change", updateLayout);
+  }, []);
+
+  const orbitRadius = isCompactLayout ? 122 : ORBIT_RADIUS;
+  const orbitCardSize = isCompactLayout ? 74 : 88;
+  const orbitCardHalf = orbitCardSize / 2;
+  const orbitIconSize = isCompactLayout ? 24 : 32;
 
   return (
     <div
       className={`relative min-h-screen overflow-hidden transition-all duration-300 ${
-        collapsed ? "pl-[100px]" : "pl-[280px]"
+        collapsed ? "pl-[74px] sm:pl-[92px]" : "pl-[220px] xl:pl-[280px]"
       }`}
     >
       {/* Ambient glow with subtle pulse */}
@@ -84,19 +100,25 @@ const Main = () => {
         {/* Orbital area */}
         <div className="flex-1 flex items-center justify-center min-h-0">
           <div
-            className="relative w-[380px] h-[380px] flex items-center justify-center"
-            style={{ transform: "translate(-12%, -10%)" }}
+            className="relative flex items-center justify-center"
+            style={{
+              width: orbitRadius * 2 + 60,
+              height: orbitRadius * 2 + 60,
+              transform: isCompactLayout
+                ? "translate(0, -6%)"
+                : "translate(-12%, -10%)",
+            }}
           >
             {/* Inner ring */}
             <motion.div
               className="absolute rounded-full border border-white/[0.06]"
               style={{
-                width: ORBIT_RADIUS * 2 - 48,
-                height: ORBIT_RADIUS * 2 - 48,
+                width: orbitRadius * 2 - 48,
+                height: orbitRadius * 2 - 48,
                 left: "50%",
                 top: "50%",
-                marginLeft: -(ORBIT_RADIUS - 24),
-                marginTop: -(ORBIT_RADIUS - 24),
+                marginLeft: -(orbitRadius - 24),
+                marginTop: -(orbitRadius - 24),
               }}
               animate={{ rotate: 360 }}
               transition={{
@@ -109,12 +131,12 @@ const Main = () => {
             <motion.div
               className="absolute rounded-full border border-white/10"
               style={{
-                width: ORBIT_RADIUS * 2,
-                height: ORBIT_RADIUS * 2,
+                width: orbitRadius * 2,
+                height: orbitRadius * 2,
                 left: "50%",
                 top: "50%",
-                marginLeft: -ORBIT_RADIUS,
-                marginTop: -ORBIT_RADIUS,
+                marginLeft: -orbitRadius,
+                marginTop: -orbitRadius,
               }}
               animate={{ rotate: 360 }}
               transition={{
@@ -128,12 +150,12 @@ const Main = () => {
             <motion.div
               className="absolute rounded-full border border-[#7CDCBD]/15"
               style={{
-                width: ORBIT_RADIUS * 2 + 28,
-                height: ORBIT_RADIUS * 2 + 28,
+                width: orbitRadius * 2 + 28,
+                height: orbitRadius * 2 + 28,
                 left: "50%",
                 top: "50%",
-                marginLeft: -(ORBIT_RADIUS + 14),
-                marginTop: -(ORBIT_RADIUS + 14),
+                marginLeft: -(orbitRadius + 14),
+                marginTop: -(orbitRadius + 14),
               }}
               animate={{ rotate: -360 }}
               transition={{
@@ -157,16 +179,18 @@ const Main = () => {
               {orbitalItems.map((item, i) => {
                 const Icon = item.icon;
                 const rad = (item.angle * Math.PI) / 180;
-                const x = Math.cos(rad) * ORBIT_RADIUS;
-                const y = Math.sin(rad) * ORBIT_RADIUS;
+                const x = Math.cos(rad) * orbitRadius;
+                const y = Math.sin(rad) * orbitRadius;
 
                 return (
                   <div
                     key={item.to}
-                    className="absolute z-20 w-[88px] h-[88px]"
+                    className="absolute z-20"
                     style={{
-                      left: `calc(50% + ${x - 44}px)`,
-                      top: `calc(50% + ${y - 44}px)`,
+                      width: orbitCardSize,
+                      height: orbitCardSize,
+                      left: `calc(50% + ${x - orbitCardHalf}px)`,
+                      top: `calc(50% + ${y - orbitCardHalf}px)`,
                     }}
                   >
                     {/* Counter-rotate so the card stays level like a ferris wheel gondola */}
@@ -191,8 +215,10 @@ const Main = () => {
                       >
                         <Link to={item.to} className="block w-full h-full">
                           <motion.div
-                            className="w-[88px] h-[88px] rounded-2xl bg-[#12162A]/95 border-2 flex flex-col items-center justify-center gap-1.5 cursor-pointer overflow-hidden backdrop-blur-sm"
+                            className="rounded-2xl bg-[#12162A]/95 border-2 flex flex-col items-center justify-center gap-1.5 cursor-pointer overflow-hidden backdrop-blur-sm"
                             style={{
+                              width: orbitCardSize,
+                              height: orbitCardSize,
                               borderColor: `${item.color}40`,
                               boxShadow: `0 0 20px ${item.color}12, 0 4px 12px rgba(0,0,0,0.2)`,
                             }}
@@ -205,10 +231,12 @@ const Main = () => {
                             whileTap={{ scale: 0.98 }}
                           >
                             <Icon
-                              className="w-8 h-8 shrink-0"
-                              style={{ color: item.color }}
+                              className="shrink-0"
+                              style={{ color: item.color, width: orbitIconSize, height: orbitIconSize }}
                             />
-                            <span className="text-[10px] font-medium text-white/90 max-w-[72px] truncate px-1">
+                            <span
+                              className={`font-medium text-white/90 truncate px-1 ${isCompactLayout ? "text-[9px] max-w-[64px]" : "text-[10px] max-w-[72px]"}`}
+                            >
                               {collapsed ? item.shortLabel : item.label}
                             </span>
                           </motion.div>

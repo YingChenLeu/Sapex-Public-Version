@@ -97,7 +97,7 @@ const WellnessSupport = () => {
   return (
     <div
       className={`min-h-screen bg-[#0A0D17] pt-8 pb-20 ${
-        collapsed ? "pl-[130px]" : "pl-[280px]"
+        collapsed ? "pl-[74px] sm:pl-[96px]" : "pl-[220px] xl:pl-[280px]"
       } transition-all duration-300`}
     >
       {/* Background */}

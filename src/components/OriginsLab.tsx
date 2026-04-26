@@ -359,7 +359,7 @@ export const OriginsLab = () => {
   return (
     <div
       className={`bg-[#0A0D17] min-h-screen pt-[30px] pb-16 transition-all duration-300 ${
-        collapsed ? "pl-[130px]" : "pl-[280px]"
+        collapsed ? "pl-[74px] sm:pl-[96px]" : "pl-[220px] xl:pl-[280px]"
       }`}
     >
       <div className="px-6 md:px-10 pb-12">
