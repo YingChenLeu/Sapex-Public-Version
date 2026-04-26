@@ -12,6 +12,7 @@ import LandingPage from "./components/LandingPage";
 import Navbar from "./components/NavBar";
 import { Routes, Route } from "react-router-dom";
 import SideBar, { SidebarProvider } from "./components/SideBar";
+import FloatingLines from "./components/ui/FloatingLines";
 import Auth from "./components/Auth";
 import HelpBoard from "./components/HelpBoard";
 import StudyRooms from "./components/StudyRooms";
@@ -192,7 +193,16 @@ function App() {
           <Route
             path="/main"
             element={
-              <div>
+              <div className="relative min-h-screen overflow-hidden bg-[#0A0D17]">
+                <div className="pointer-events-none absolute inset-0 z-0 opacity-35 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),rgba(0,0,0,0.4),transparent)]">
+                  <FloatingLines
+                    linesGradient={["#45f56e", "#A8D3CC", "#2D4F53"]}
+                    interactive={false}
+                    bendStrength={-15}
+                    parallax={false}
+                    mixBlendMode="screen"
+                  />
+                </div>
                 <SideBar />
                 <Main />
               </div>

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpenText, Eclipse, Codesandbox, Video } from "lucide-react";
-import PrismaticBurst from "./ui/PrismaticBurst.tsx";
 import { useSidebar } from "./SideBar";
 
 const ORBIT_RADIUS = 160;
@@ -51,9 +50,6 @@ const Main = () => {
         collapsed ? "pl-[100px]" : "pl-[280px]"
       }`}
     >
-      {/* Background */}
-      <div className="absolute inset-0 bg-[#0A0D17]" />
-
       {/* Ambient glow with subtle pulse */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
@@ -66,22 +62,6 @@ const Main = () => {
         animate={{ opacity: [0.85, 1, 0.85] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       />
-
-      {/* Prismatic burst background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <PrismaticBurst
-          animationType="rotate3d"
-          intensity={1.6}
-          speed={0.45}
-          distort={0}
-          paused={false}
-          offset={{ x: collapsed ? -120 : -160, y: 0 }}
-          hoverDampness={0.25}
-          rayCount={0}
-          mixBlendMode="lighten"
-          colors={["#7CDCBD", "#5FBFAA", "#6600cc", "#0A0D17", "#E6FFFA"]}
-        />
-      </div>
 
       {/* Content wrapper */}
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -239,8 +219,6 @@ const Main = () => {
                 );
               })}
             </motion.div>
-
-          
           </div>
         </div>
       </div>

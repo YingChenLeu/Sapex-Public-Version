@@ -116,7 +116,7 @@ const Auth = () => {
       const result = await signInWithEmailAndPassword(
         auth,
         email.trim().toLowerCase(),
-        password
+        password,
       );
 
       localStorage.setItem("uid", result.user.uid);
@@ -126,7 +126,7 @@ const Auth = () => {
         localStorage.setItem("name", data.username || "Anonymous");
         localStorage.setItem(
           "photo",
-          data.profilePicture || "/default-avatar.png"
+          data.profilePicture || "/default-avatar.png",
         );
       }
       await updateDoc(doc(db, "users", result.user.uid), { online: true });
@@ -163,7 +163,7 @@ const Auth = () => {
       const result = await createUserWithEmailAndPassword(
         auth,
         email.trim().toLowerCase(),
-        password
+        password,
       );
       await updateProfile(result.user, {
         displayName: name.trim(),
@@ -240,9 +240,7 @@ const Auth = () => {
                 <LogIn className="w-8 h-8 text-[#7CDCBD]" />
                 <h2 className="text-3xl font-bold text-white">Login</h2>
               </div>
-              {error && (
-                <p className="text-red-400 text-sm mb-4">{error}</p>
-              )}
+              {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email-login" className="text-slate-300">
@@ -279,7 +277,9 @@ const Auth = () => {
                   {loading ? "Logging in..." : "Login"}
                 </Button>
                 <div className="flex items-center gap-3 pt-2">
-                  <span className="text-xs text-slate-500">Or continue with</span>
+                  <span className="text-xs text-slate-500">
+                    Or continue with
+                  </span>
                   <button
                     onClick={handleClick}
                     type="button"
@@ -306,9 +306,7 @@ const Auth = () => {
                 <UserRound className="w-8 h-8 text-[#7CDCBD]" />
                 <h2 className="text-3xl font-bold text-white">Sign Up</h2>
               </div>
-              {error && (
-                <p className="text-red-400 text-sm mb-4">{error}</p>
-              )}
+              {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-slate-300">

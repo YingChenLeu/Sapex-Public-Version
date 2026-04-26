@@ -60,6 +60,7 @@ function SideBar() {
   const { collapsed, toggleCollapsed } = useSidebar();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const isMain = location.pathname === "/main";
 
   useEffect(() => {
     const fetchAdminStatus = async () => {
@@ -86,12 +87,18 @@ function SideBar() {
     <>
       <aside
         className={`fixed top-0 left-0 z-[100] h-screen flex flex-col
-          bg-[#0D1117] border-r border-white/[0.06]
+          ${isMain ? "bg-transparent" : "bg-[#0D1117]"} border-r border-white/[0.06]
           ${collapsed ? "w-[80px]" : "w-[240px]"}`}
         style={{
           transition: "width 400ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
+        {isMain && (
+          <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 bg-[#0D1117]/70 backdrop-blur-[2px]" />
+          </div>
+        )}
+
         {/* Logo */}
         <Link
           to="/main"

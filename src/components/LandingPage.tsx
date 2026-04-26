@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Code2, Leaf, Instagram } from "lucide-react";
 import Logo from "@/assets/sapexlogo.png";
 import MetaBalls from "./ui/MetaBalls";
+import FloatingLines from "./ui/FloatingLines";
+import SoftAurora from "./ui/SoftAurora";
+import BorderGlow from "./ui/BorderGlow";
 import CircularText from "./CircularText";
 import firebaseLogo from "@/assets/landingPageAssets/devLogos/firebase.png";
 import fastAPILogo from "@/assets/landingPageAssets/devLogos/fastAPI.png";
@@ -112,7 +115,7 @@ function TechCard({
 }) {
   return (
     <motion.div
-      className="rounded-2xl border border-white/10 bg-[#0C111C]/80 p-6 flex flex-col gap-4 hover:border-[#A8D3CC]/20"
+      className="h-full"
       variants={{
         hidden: enterFrom,
         visible: {
@@ -129,20 +132,35 @@ function TechCard({
       }}
       transition={{ type: "spring", stiffness: 180, damping: 22 }}
     >
-      <div className="flex items-center justify-center shrink-0 min-h-[80px]">
-        {logoEl}
-      </div>
-      <div className="min-w-0 flex-1">
-        <motion.h3
-          className="font-semibold text-[#D8DEDE] mb-2 text-lg"
-          initial={false}
-          whileHover={{ color: "#A8D3CC" }}
-          transition={{ duration: 0.2 }}
-        >
-          {title}
-        </motion.h3>
-        <p className="text-sm text-[#D8DEDE]/80 leading-relaxed">{description}</p>
-      </div>
+      <BorderGlow
+        className="h-full"
+        borderRadius={20}
+        backgroundColor="#0C111C"
+        glowColor="170 35 75"
+        glowIntensity={0.9}
+        edgeSensitivity={28}
+        colors={["#A8D3CC", "#45f56e", "#2D4F53"]}
+        fillOpacity={0.25}
+      >
+        <div className="p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-center shrink-0 min-h-[80px]">
+            {logoEl}
+          </div>
+          <div className="min-w-0 flex-1">
+            <motion.h3
+              className="font-semibold text-[#D8DEDE] mb-2 text-lg"
+              initial={false}
+              whileHover={{ color: "#A8D3CC" }}
+              transition={{ duration: 0.2 }}
+            >
+              {title}
+            </motion.h3>
+            <p className="text-sm text-[#D8DEDE]/80 leading-relaxed">
+              {description}
+            </p>
+          </div>
+        </div>
+      </BorderGlow>
     </motion.div>
   );
 }
@@ -166,7 +184,16 @@ function LandingPage() {
             "linear-gradient(180deg, #111a16 0%, #0f1614 25%, #0d1218 55%, #0A0D17 85%, #0A0D17 100%)",
         }}
       >
-        <div className="mx-auto max-w-6xl">
+        <div className="pointer-events-none absolute inset-0 z-0 opacity-35 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.85),rgba(0,0,0,0.35),transparent)]">
+          <FloatingLines
+            linesGradient={["#45f56e", "#A8D3CC", "#2D4F53"]}
+            interactive={false}
+            bendStrength={-15}
+            parallax={false}
+            mixBlendMode="screen"
+          />
+        </div>
+        <div className="relative z-10 mx-auto max-w-6xl">
           {/* Row 1: Hero copy (left) | Metaballs + circular text (right) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className="relative z-10 flex flex-col items-start text-left order-2 lg:order-1">
@@ -218,7 +245,7 @@ function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="absolute inset-0 z-0 rounded-2xl overflow-hidden border border-white/10">
+              <div className="absolute inset-0 z-0 rounded-2xl overflow-hidden">
                 <MetaBalls
                   color="#2D4F53"
                   cursorBallColor="#abd7dc"
@@ -243,9 +270,9 @@ function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Row 2: Trust bar / stats */}
+          {/* Row 2: Trust / affiliation */}
           <motion.div
-            className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl"
+            className="relative z-10 mt-12 flex max-w-4xl flex-wrap items-center gap-x-8 gap-y-3"
             initial="hidden"
             animate="visible"
             variants={{
@@ -255,40 +282,27 @@ function LandingPage() {
               hidden: {},
             }}
           >
-            {[
-              {
-                label: "Schools on waitlist",
-                value: "N/A",
-                desc: "Growing community",
-              },
-              {
-                label: "Questions answered",
-                value: "N/A",
-                desc: "Peer solutions",
-              },
-              { label: "Avg. response time", value: "N/A", desc: "Fast support" },
-              {
-                label: "Student satisfaction",
-                value: "N/A",
-                desc: "Trusted platform",
-              },
-            ].map((s) => (
-              <motion.div
-                key={s.label}
-                className="rounded-xl border border-white/10 bg-white/5 p-4 hover:border-[#A8D3CC]/30 transition-colors"
-                variants={{
-                  hidden: { opacity: 0, y: 12 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-                whileHover={{ y: -2 }}
-              >
-                <div className="text-2xl font-semibold mb-1">{s.value}</div>
-                <div className="text-xs text-[#D8DEDE]/70 font-medium">
-                  {s.label}
-                </div>
-                <div className="text-xs text-[#D8DEDE]/50 mt-1">{s.desc}</div>
-              </motion.div>
-            ))}
+            <motion.div
+              className="text-sm text-[#D8DEDE]/85 sm:text-base"
+              variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+            >
+              <span className="font-semibold text-[#D8DEDE]">Funded by</span>{" "}
+              <span className="font-semibold text-[#A8D3CC]">AISCT</span>
+            </motion.div>
+            <motion.div
+              aria-hidden
+              className="hidden h-1.5 w-1.5 rounded-full bg-white/20 sm:block"
+              variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
+            />
+            <motion.div
+              className="text-sm text-[#D8DEDE]/85 sm:text-base"
+              variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+            >
+              <span className="font-semibold text-[#D8DEDE]">Used by</span>{" "}
+              <span className="font-semibold text-[#A8D3CC]">
+                AISCT&apos;s Social Science Department
+              </span>
+            </motion.div>
           </motion.div>
         </div>
       </motion.section>
@@ -312,10 +326,10 @@ function LandingPage() {
             other, without it feeling stiff or corporate. So we built one.
           </p>
           <p className="text-base text-[#D8DEDE]/80 leading-relaxed max-w-3xl mx-auto">
-            Schools and teachers who care about their students use Sapex so
-            kids can ask questions, share what they know, and feel like they
-            belong. You work with people from your own school, so it stays
-            real and safe.
+            Schools and teachers who care about their students use Sapex so kids
+            can ask questions, share what they know, and feel like they belong.
+            You work with people from your own school, so it stays real and
+            safe.
           </p>
         </motion.div>
       </section>
@@ -383,8 +397,16 @@ function LandingPage() {
               </motion.div>
               <motion.h2
                 className="text-2xl md:text-3xl font-bold text-center bg-gradient-to-r from-[#D8DEDE] via-[#A8D3CC] to-[#D8DEDE] bg-clip-text text-transparent mb-2"
-                variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
-                transition={{ delay: 0.4, type: "spring", stiffness: 180, damping: 22 }}
+                variants={{
+                  hidden: { opacity: 0, y: 8 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                transition={{
+                  delay: 0.4,
+                  type: "spring",
+                  stiffness: 180,
+                  damping: 22,
+                }}
               >
                 Key Technologies
               </motion.h2>
@@ -403,7 +425,11 @@ function LandingPage() {
                     ],
                   }}
                   transition={{
-                    boxShadow: { repeat: Infinity, duration: 2.5, ease: "easeInOut" },
+                    boxShadow: {
+                      repeat: Infinity,
+                      duration: 2.5,
+                      ease: "easeInOut",
+                    },
                   }}
                 >
                   <Button
@@ -483,8 +509,21 @@ function LandingPage() {
       </section>
 
       {/* BRIDGE Framework - animated */}
-      <section id="bridge" className="py-16 md:py-24 border-t border-white/5">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <section
+        id="bridge"
+        className="relative overflow-hidden border-t border-white/5 py-16 md:py-24"
+      >
+        <div className="pointer-events-none absolute inset-0 z-0 opacity-40 [mask-image:linear-gradient(to_bottom,black_0%,black_70%,transparent_100%)]">
+          <SoftAurora
+            color1="#A8D3CC"
+            color2="#2D4F53"
+            brightness={0.7}
+            speed={0.45}
+            scale={1.35}
+            enableMouseInteraction={false}
+          />
+        </div>
+        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
