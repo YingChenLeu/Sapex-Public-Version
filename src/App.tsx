@@ -10,6 +10,12 @@ import TechStack from "./components/TechStack";
 import Community from "./components/Community";
 import LandingPage from "./components/LandingPage";
 import Navbar from "./components/NavBar";
+import FeaturesPage from "./components/FeaturesPage";
+import SafetyPage from "./components/SafetyPage";
+import ForSchoolsPage from "./components/ForSchoolsPage";
+import FaqPage from "./components/FaqPage";
+import ContactPage from "./components/ContactPage";
+import TermsPage from "./components/TermsPage";
 import { Routes, Route } from "react-router-dom";
 import SideBar, { SidebarProvider } from "./components/SideBar";
 import FloatingLines from "./components/ui/FloatingLines";
@@ -52,6 +58,12 @@ const getPageTitle = (pathname: string) => {
   if (pathname === "/development") return "Tech Stack";
   if (pathname === "/developer") return "About Developer";
   if (pathname === "/community") return "Community";
+  if (pathname === "/features") return "Features";
+  if (pathname === "/safety") return "Safety";
+  if (pathname === "/schools") return "For Schools";
+  if (pathname === "/faq") return "FAQ";
+  if (pathname === "/terms") return "Terms";
+  if (pathname === "/contact") return "Contact";
   if (pathname === "/stillindevelopment") return "Still In Development";
   if (pathname === "/login") return "Login";
   return APP_NAME;
@@ -227,6 +239,60 @@ function App() {
               <div>
                 <Navbar />
                 <TechStack />
+              </div>
+            }
+          />
+          <Route
+            path="/features"
+            element={
+              <div>
+                <Navbar />
+                <FeaturesPage />
+              </div>
+            }
+          />
+          <Route
+            path="/safety"
+            element={
+              <div>
+                <Navbar />
+                <SafetyPage />
+              </div>
+            }
+          />
+          <Route
+            path="/schools"
+            element={
+              <div>
+                <Navbar />
+                <ForSchoolsPage />
+              </div>
+            }
+          />
+          <Route
+            path="/faq"
+            element={
+              <div>
+                <Navbar />
+                <FaqPage />
+              </div>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <div>
+                <Navbar />
+                <ContactPage />
+              </div>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <div>
+                <Navbar />
+                <TermsPage />
               </div>
             }
           />

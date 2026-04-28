@@ -165,10 +165,19 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
                     e.stopPropagation();
                     setIsImageDialogOpen(true);
                   }}
-                  className="flex items-center gap-1 hover:text-slate-100 transition-colors"
+                  className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5 hover:border-[#7CDCBD]/40 hover:bg-white/10 transition-colors"
+                  title="View attachment"
                 >
-                  <Paperclip size={14} />
-                  <span>View attachment</span>
+                  <motion.span
+                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#0A0D17]/60 border border-white/10"
+                    whileHover={{ rotate: -8, scale: 1.04 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                  >
+                    <Paperclip size={14} className="text-[#D8DEDE]/90" />
+                  </motion.span>
+                  <span className="font-medium text-[#D8DEDE]/85 group-hover:text-white">
+                    Attachment
+                  </span>
                 </button>
               ) : (
                 <div className="flex items-center gap-1 opacity-70">

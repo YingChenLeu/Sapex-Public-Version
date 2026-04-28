@@ -288,8 +288,8 @@ type PeerSession = {
 const PEER_SESSIONS: PeerSession[] = [
   {
     id: 1,
-    name: "Wiktor",
-    initials: "WW",
+    name: "Alex",
+    initials: "AX",
     color: "#A78BFA",
     ideas: [
       "AR app that overlays solutions on textbook pages",
@@ -299,8 +299,8 @@ const PEER_SESSIONS: PeerSession[] = [
   },
   {
     id: 2,
-    name: "Bianca",
-    initials: "BD",
+    name: "Remy",
+    initials: "RM",
     color: "#F472B6",
     ideas: [
       "Open-source design system for school clubs",
@@ -310,8 +310,8 @@ const PEER_SESSIONS: PeerSession[] = [
   },
   {
     id: 3,
-    name: "Julien",
-    initials: "JN",
+    name: "Nova",
+    initials: "NV",
     color: "#7CDCBD",
     ideas: ["Recycled-material skate ramp build log"],
     delay: 2.0,

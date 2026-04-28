@@ -468,18 +468,25 @@ export const ProblemChatDialog = ({
     if (!problem?.id) return;
 
     // Delete associated image from Firebase Storage if present
-    if (
-      problem.image &&
-      problem.image.includes("firebasestorage.googleapis.com")
-    ) {
+    if (problem.image) {
       try {
-        const url = new URL(problem.image);
-        const pathMatch = url.pathname.match(/\/o\/(.+)$/);
-        if (pathMatch) {
-          const fullPath = decodeURIComponent(pathMatch[1]);
+        // Support both HTTPS download URLs and gs:// URIs.
+        if (problem.image.startsWith("gs://")) {
           const storage = getStorage(app);
-          const storageRef = ref(storage, fullPath);
-          await deleteObject(storageRef);
+          await deleteObject(ref(storage, problem.image));
+        } else {
+          const url = new URL(problem.image);
+          const isFirebaseStorageHost =
+            url.hostname === "firebasestorage.googleapis.com" ||
+            url.hostname.endsWith(".firebasestorage.app");
+          if (isFirebaseStorageHost) {
+            const pathMatch = url.pathname.match(/\/o\/(.+)$/);
+            if (pathMatch) {
+              const fullPath = decodeURIComponent(pathMatch[1]);
+              const storage = getStorage(app);
+              await deleteObject(ref(storage, fullPath));
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to delete problem image from Storage:", err);

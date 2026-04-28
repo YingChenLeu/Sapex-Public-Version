@@ -459,7 +459,7 @@ const Profile = () => {
                           ([trait, score]) => ({
                             trait: trait.slice(0),
                             value: Math.min(score * 120, 100),
-                          })
+                          }),
                         )}
                       >
                         <PolarGrid stroke="rgba(255,255,255,0.1)" />

@@ -29,15 +29,15 @@ const JP: Person = {
   color: "#7CDCBD",
   ringColor: "rgba(52,211,153,0.25)",
 };
-const WIKTOR: Person = {
-  name: "Wiktor",
-  initials: "WW",
+const ALEX: Person = {
+  name: "Alex",
+  initials: "AX",
   color: "#A78BFA",
   ringColor: "rgba(167,139,250,0.3)",
 };
-const BIANCA: Person = {
-  name: "Bianca",
-  initials: "BD",
+const REMY: Person = {
+  name: "Remy",
+  initials: "RM",
   color: "#F472B6",
   ringColor: "rgba(244,114,182,0.3)",
 };
@@ -233,7 +233,7 @@ type ChatMessage = {
 const CHAT_MESSAGES: ChatMessage[] = [
   {
     id: 1,
-    person: WIKTOR,
+    person: ALEX,
     text: "Move the constant over, then halve b.",
     isOwn: false,
     delay: 0.4,
@@ -247,7 +247,7 @@ const CHAT_MESSAGES: ChatMessage[] = [
   },
   {
     id: 3,
-    person: BIANCA,
+    person: REMY,
     text: "Yes — then square (b/2) and add it to both sides.",
     isOwn: false,
     delay: 4.2,
@@ -348,7 +348,7 @@ const ChatDialogScene = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 5.4, duration: 0.3 }}
         >
-          <span>Julien is typing</span>
+          <span>Nova is typing</span>
           <span className="flex gap-[2px]">
             {[0, 1, 2].map((i) => (
               <motion.span

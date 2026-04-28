@@ -1,54 +1,47 @@
-# React + TypeScript + Vite
+# Sapex
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Firebase project migration (keep API + notifications intact)
 
-Currently, two official plugins are available:
+This repo uses Firebase in two places:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend**: Firebase Web SDK (Auth + Firestore + Callable Functions) in `src/lib/firebase.ts`
+- **Backend (Firebase Functions)**: Cloud Functions v2 in `functions/src/index.ts`
+  - **API**: `createStudyRoomMeet` (callable function)
+  - **Notifications**: `notifyProblemCreatorOnNewMessage` (Firestore trigger that sends email via Resend)
 
-## Expanding the ESLint configuration
+### 1) Create a new Firebase project
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+In the Firebase console, create a new project and:
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- Enable **Authentication** providers you use (e.g. Google)
+- Create/enable **Firestore**
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2) Configure the frontend for the new project
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The frontend Firebase config is environment-driven via `VITE_FIREBASE_*`.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+- Copy `.env.example` to `.env.local`
+- Fill in values from Firebase Console → Project settings → Your apps → Web app config
+
+### 3) Deploy Functions to the new project (API + notifications)
+
+You must set these in the new project before deploying Functions:
+
+- **Resend (email notifications)**:
+  - `firebase functions:secrets:set RESEND_API_KEY`
+  - `firebase functions:config:set` (or equivalent env) for:
+    - `APP_PUBLIC_URL` (e.g. `https://yourapp.web.app` or your Vercel domain)
+    - `RESEND_FROM`
+
+- **Google Calendar / Meet (API)**:
+  - Set `CALENDAR_CREDENTIALS_JSON` (service account JSON string)
+  - Optionally set `CALENDAR_ID` (defaults to `primary`)
+
+For local testing, copy `functions/.env.example` to `functions/.env`.
+
+### 4) Data migration
+
+If you need to keep existing users/data, export from the old project and import into the new project (Firestore data, Auth users, Storage if used). Then verify:
+
+- Callable function `createStudyRoomMeet` returns expected payload
+- Firestore trigger `notifyProblemCreatorOnNewMessage` sends emails on new messages

@@ -1,14 +1,7 @@
 import { motion } from "framer-motion";
-import { Users, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
-const TEAM_MEMBERS = [
-  { name: "Ying Chen Leu", role: "Founder and Developer" },
-  { name: "Wiktor Waligora", role: "Co-founder" },
-  { name: "Julien Nowak", role: "Co-founder" },
-  { name: "Bianca Nusca Dagon", role: "Secretary" },
-] as const;
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 24 },
@@ -19,15 +12,6 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
   hidden: {},
 };
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 const AboutDev = () => {
   return (
@@ -54,7 +38,7 @@ const AboutDev = () => {
             variants={fadeInUp}
             transition={{ duration: 0.45 }}
           >
-            <Users className="w-7 h-7 text-[#A8D3CC]" />
+            <Sparkles className="w-7 h-7 text-[#A8D3CC]" />
           </motion.div>
           <motion.h1
             className="text-4xl sm:text-5xl font-bold font-syncopate bg-gradient-to-r from-[#D8DEDE] to-[#A8D3CC] bg-clip-text text-transparent mb-4"
@@ -68,8 +52,8 @@ const AboutDev = () => {
             variants={fadeInUp}
             transition={{ duration: 0.5 }}
           >
-            A youth-led initiative building a safe, supportive platform for
-            students to learn, connect, and grow.
+            A safe, supportive platform for students to learn, connect, and
+            grow.
           </motion.p>
         </motion.div>
       </section>
@@ -97,62 +81,6 @@ const AboutDev = () => {
               believe in connection over isolation—and that young people, when
               supported, can achieve more together.
             </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="max-w-4xl mx-auto">
-          <motion.h2
-            className="text-2xl sm:text-3xl font-bold text-center mb-3"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.45 }}
-          >
-            The team
-          </motion.h2>
-          <motion.p
-            className="text-[#D8DEDE]/70 text-center mb-12 max-w-xl mx-auto"
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.45, delay: 0.08 }}
-          >
-            The people behind the platform.
-          </motion.p>
-
-          <motion.div
-            className="grid sm:grid-cols-2 gap-6"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={stagger}
-          >
-            {TEAM_MEMBERS.map((member) => (
-              <motion.div
-                key={member.name}
-                className="group rounded-2xl border border-white/10 bg-[#0C111C] p-6 hover:border-[#A8D3CC]/30 transition-colors duration-300"
-                variants={fadeInUp}
-                transition={{ duration: 0.4 }}
-                whileHover={{ y: -4 }}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-[#A8D3CC]/20 flex items-center justify-center shrink-0 text-[#A8D3CC] font-semibold text-lg font-syncopate">
-                    {getInitials(member.name)}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-white text-lg truncate">
-                      {member.name}
-                    </h3>
-                    <p className="text-[#A8D3CC] text-sm mt-0.5">
-                      {member.role}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
           </motion.div>
         </div>
       </section>

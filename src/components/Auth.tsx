@@ -20,7 +20,6 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +28,6 @@ const Auth = () => {
     setError("");
     setEmail("");
     setPassword("");
-    setName("");
   };
 
   const navigate = useNavigate();
@@ -96,7 +94,20 @@ const Auth = () => {
       }
     } catch (error: any) {
       console.error("Google sign-in error:", error);
-      setError("Authentication failed. Please try again.");
+      const code = (error?.code as string | undefined) ?? "";
+      if (code === "auth/operation-not-allowed") {
+        setError("Google sign-in is disabled in Firebase Auth for this project.");
+      } else if (code === "auth/unauthorized-domain") {
+        setError("This domain is not authorized for OAuth sign-in in Firebase Auth.");
+      } else if (code === "auth/popup-blocked") {
+        setError("Popup was blocked by the browser. Please allow popups and try again.");
+      } else if (code === "auth/cancelled-popup-request" || code === "auth/popup-closed-by-user") {
+        setError("Sign-in popup was closed. Please try again.");
+      } else if (code === "auth/invalid-api-key") {
+        setError("Firebase API key is invalid for this project configuration.");
+      } else {
+        setError(code ? `Authentication failed (${code}).` : "Authentication failed. Please try again.");
+      }
     }
   };
 
@@ -137,8 +148,10 @@ const Auth = () => {
         setError("Incorrect password.");
       } else if (error.code === "auth/user-not-found") {
         setError("No account found with this email.");
+      } else if (error.code === "auth/operation-not-allowed") {
+        setError("Email/password sign-in is disabled in Firebase Auth for this project.");
       } else {
-        setError("Authentication failed. Please try again.");
+        setError(error?.code ? `Authentication failed (${error.code}).` : "Authentication failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -146,8 +159,8 @@ const Auth = () => {
   };
 
   const handleEmailSignup = async () => {
-    if (!name.trim() || !email.trim() || !password) {
-      setError("Please fill out all fields.");
+    if (!email.trim() || !password) {
+      setError("Please enter both email and password.");
       return;
     }
     if (!isValidEmail(email.trim())) {
@@ -160,22 +173,23 @@ const Auth = () => {
     }
     setLoading(true);
     try {
+      const username = email.trim().split("@")[0] || "Anonymous";
       const result = await createUserWithEmailAndPassword(
         auth,
         email.trim().toLowerCase(),
         password,
       );
       await updateProfile(result.user, {
-        displayName: name.trim(),
+        displayName: username,
       });
       const uid = result.user.uid;
       localStorage.setItem("uid", uid);
-      localStorage.setItem("name", name.trim() || "Anonymous");
+      localStorage.setItem("name", username);
       localStorage.setItem("photo", "/default-avatar.png");
 
       await setDoc(doc(db, "users", uid), {
         uid: uid,
-        username: name.trim() || "Anonymous",
+        username,
         email: email.trim().toLowerCase(),
         bio: "",
         isAdmin: false,
@@ -205,8 +219,10 @@ const Auth = () => {
       console.error("Email sign-up error:", error);
       if (error.code === "auth/email-already-in-use") {
         setError("An account with this email already exists.");
+      } else if (error.code === "auth/operation-not-allowed") {
+        setError("Email/password sign-up is disabled in Firebase Auth for this project.");
       } else {
-        setError("Sign-up failed. Please try again.");
+        setError(error?.code ? `Sign-up failed (${error.code}).` : "Sign-up failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -308,18 +324,6 @@ const Auth = () => {
               </div>
               {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-slate-300">
-                    Full Name
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="Enter your name"
-                    className="bg-[#181c27] border-[#1b1f30] text-white placeholder:text-slate-500 focus-visible:ring-[#7CDCBD]"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="email-signup" className="text-slate-300">
                     Email

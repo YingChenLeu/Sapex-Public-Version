@@ -29,7 +29,7 @@ type Person = {
 };
 
 const JP: Person = { name: "JP", initials: "JP", color: "#7CDCBD" };
-const BIANCA: Person = { name: "Bianca", initials: "BD", color: "#A78BFA" };
+const RILEY: Person = { name: "Riley", initials: "RL", color: "#A78BFA" };
 
 const TOPICS = [
   { Icon: Handshake, title: "New Friendships" },
@@ -222,9 +222,9 @@ const MatchingScene = () => {
 
       <div className="flex -space-x-1.5">
         {[
-          { initials: "WW", color: "#A78BFA" },
-          { initials: "BD", color: "#F472B6" },
-          { initials: "JN", color: "#60A5FA" },
+          { initials: "RL", color: "#A78BFA" },
+          { initials: "SK", color: "#F472B6" },
+          { initials: "NM", color: "#60A5FA" },
           { initials: "EM", color: "#7CDCBD" },
         ].map((p, i) => (
           <motion.div
@@ -263,13 +263,13 @@ const MESSAGES: ChatMsg[] = [
   {
     id: 1,
     person: JP,
-    text: "yo bianca i'm stressed bro 😭 idk how to study for ap exams",
+    text: "yo riley i'm stressed bro 😭 idk how to study for ap exams",
     isOwn: true,
     delay: 2.7,
   },
   {
     id: 2,
-    person: BIANCA,
+    person: RILEY,
     text: "fr same a few months ago lol — which ones hitting hardest?",
     isOwn: false,
     delay: 3.8,
@@ -283,7 +283,7 @@ const MESSAGES: ChatMsg[] = [
   },
   {
     id: 4,
-    person: BIANCA,
+    person: RILEY,
     text: "okay we got this — lemme send my study plan rn",
     isOwn: false,
     delay: 7.6,
@@ -410,7 +410,7 @@ const ChatDialogScene = () => {
               textClassName="text-white/95"
               sequences={[
                 {
-                  text: "yo bianca i'm stressed bro idk how to study for ap exams",
+                  text: "yo riley i'm stressed bro idk how to study for ap exams",
                   typeStart: 0.6,
                   charDelay: 0.035,
                   clearAt: 2.6,

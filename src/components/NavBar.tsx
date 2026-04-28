@@ -1,15 +1,25 @@
 import { useEffect, useState } from "react";
-import { UserRound, Users, LogIn, Leaf, Sparkles, Code2 } from "lucide-react";
+import {
+  LogIn,
+  ShieldCheck,
+  Sparkles,
+  Building2,
+  CircleHelp,
+  Mail,
+  FileText,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 const navLinks = [
-  { to: "/initiative", label: "Initiative", icon: Leaf },
-  { to: "/development", label: "Tech", icon: Code2 },
-  { to: "/developer", label: "About", icon: UserRound },
-  { to: "/community", label: "Communities", icon: Users },
+  { to: "/features", label: "Features", icon: Sparkles },
+  { to: "/safety", label: "Safety", icon: ShieldCheck },
+  { to: "/schools", label: "For Schools", icon: Building2 },
+  { to: "/faq", label: "FAQ", icon: CircleHelp },
+  { to: "/terms", label: "Terms", icon: FileText },
+  { to: "/contact", label: "Contact", icon: Mail },
 ] as const;
 
 const Navbar = () => {
@@ -36,7 +46,7 @@ const Navbar = () => {
           </span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="hidden md:flex items-center gap-1 sm:gap-2">
           {navLinks.map(({ to, label, icon: Icon }) => {
             const isActive = location.pathname === to;
             return (
@@ -49,8 +59,8 @@ const Navbar = () => {
                     : "text-[#D8DEDE]/80 hover:text-[#A8D3CC] hover:bg-white/5"
                 }`}
               >
-                <Icon size={18} className="shrink-0" />
-                <span className="hidden sm:inline">{label}</span>
+                <Icon size={16} className="shrink-0" />
+                <span>{label}</span>
               </Link>
             );
           })}
@@ -64,7 +74,7 @@ const Navbar = () => {
           >
             <Link to="/helpboard" className="flex items-center gap-2">
               <Sparkles size={18} />
-              <span>Open Sapex</span>
+              <span className="hidden sm:inline">Open Sapex</span>
             </Link>
           </Button>
         ) : (
@@ -76,7 +86,7 @@ const Navbar = () => {
           >
             <Link to="/login" className="flex items-center gap-2">
               <LogIn size={18} />
-              <span>Sign into Sapex</span>
+              <span className="hidden sm:inline">Sign into Sapex</span>
             </Link>
           </Button>
         )}
