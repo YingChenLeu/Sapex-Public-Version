@@ -28,8 +28,8 @@ type Person = {
   color: string;
 };
 
-const JP: Person = { name: "JP", initials: "JP", color: "#7CDCBD" };
-const RILEY: Person = { name: "Riley", initials: "RL", color: "#A78BFA" };
+const LUFFY: Person = { name: "Luffy", initials: "LF", color: "#7CDCBD" };
+const ROBIN: Person = { name: "Robin", initials: "RB", color: "#A78BFA" };
 
 const TOPICS = [
   { Icon: Handshake, title: "New Friendships" },
@@ -262,28 +262,28 @@ type ChatMsg = {
 const MESSAGES: ChatMsg[] = [
   {
     id: 1,
-    person: JP,
-    text: "yo riley i'm stressed bro 😭 idk how to study for ap exams",
+    person: LUFFY,
+    text: "yo robin i'm stressed 😭 idk how to study for ap exams",
     isOwn: true,
     delay: 2.7,
   },
   {
     id: 2,
-    person: RILEY,
+    person: ROBIN,
     text: "fr same a few months ago lol — which ones hitting hardest?",
     isOwn: false,
     delay: 3.8,
   },
   {
     id: 3,
-    person: JP,
+    person: LUFFY,
     text: "ap chem AND lit at the same time fml",
     isOwn: true,
     delay: 6.5,
   },
   {
     id: 4,
-    person: RILEY,
+    person: ROBIN,
     text: "okay we got this — lemme send my study plan rn",
     isOwn: false,
     delay: 7.6,
@@ -410,7 +410,7 @@ const ChatDialogScene = () => {
               textClassName="text-white/95"
               sequences={[
                 {
-                  text: "yo riley i'm stressed bro idk how to study for ap exams",
+                  text: "yo robin i'm stressed idk how to study for ap exams",
                   typeStart: 0.6,
                   charDelay: 0.035,
                   clearAt: 2.6,

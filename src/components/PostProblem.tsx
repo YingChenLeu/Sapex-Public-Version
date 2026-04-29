@@ -29,6 +29,7 @@ import {
   type CourseCategory,
   type Course,
 } from "@/components/ui/courseData";
+import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
 
 const fieldClass =
   "bg-[#0d1019] border-white/10 text-white placeholder:text-gray-500 rounded-xl focus-visible:ring-2 focus-visible:ring-[#7cdcbd]/35 focus-visible:border-[#7cdcbd]/25";
@@ -79,7 +80,8 @@ const PostProblem = () => {
     if (user?.uid) {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
-        avatar = userDoc.data().profilePicture || "";
+        const data = userDoc.data();
+        avatar = resolveUserAvatarUrl(data) || "";
       }
     }
 

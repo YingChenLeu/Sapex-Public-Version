@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CircleUserRound,
   Video,
-  Clock,
   Eclipse,
   LogOut,
   Hexagon,
@@ -13,6 +12,7 @@ import {
   BookOpenText,
   ChevronLeft,
   ChevronRight,
+  GraduationCap,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
@@ -68,8 +68,8 @@ export const useSidebar = () => {
 
 const navItems = [
   { to: "/user-profile", icon: CircleUserRound, label: "Profile" },
-  { to: "/contributions", icon: Clock, label: "Contributions" },
   { to: "/helpboard", icon: BookOpenText, label: "Academic Hub" },
+  { to: "/rate-your-chance", icon: GraduationCap, label: "Rate Your Chance" },
   { to: "/wellness-support", icon: Eclipse, label: "Wellness" },
   { to: "/origins-lab", icon: Codesandbox, label: "Origins Lab" },
   { to: "/study-rooms", icon: Video, label: "Study Rooms" },
@@ -154,7 +154,9 @@ function SideBar() {
         <nav className="flex-1 overflow-y-auto py-3 px-2 min-h-0">
           <ul className="space-y-0.5">
             {navItems.map(({ to, icon: Icon, label }) => {
-              const isActive = location.pathname === to;
+              const isActive =
+                location.pathname === to ||
+                (to !== "/" && location.pathname.startsWith(`${to}/`));
               return (
                 <li key={to}>
                   <Link

@@ -23,21 +23,21 @@ type Person = {
   ringColor: string;
 };
 
-const JP: Person = {
-  name: "JP",
-  initials: "JP",
+const LUFFY: Person = {
+  name: "Luffy",
+  initials: "LF",
   color: "#7CDCBD",
   ringColor: "rgba(52,211,153,0.25)",
 };
-const ALEX: Person = {
-  name: "Alex",
-  initials: "AX",
+const ZORO: Person = {
+  name: "Zoro",
+  initials: "ZR",
   color: "#A78BFA",
   ringColor: "rgba(167,139,250,0.3)",
 };
-const REMY: Person = {
-  name: "Remy",
-  initials: "RM",
+const NAMI: Person = {
+  name: "Nami",
+  initials: "NA",
   color: "#F472B6",
   ringColor: "rgba(244,114,182,0.3)",
 };
@@ -158,9 +158,9 @@ const HelpBoardScene = () => {
         </div>
         <div className="border-t border-white/[0.05] px-3 py-2 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <Avatar person={JP} size={20} />
+            <Avatar person={LUFFY} size={20} />
             <div className="leading-tight">
-              <div className="text-[10px] text-slate-100">JP</div>
+              <div className="text-[10px] text-slate-100">Luffy</div>
               <div className="text-[8.5px] text-slate-500">5m ago</div>
             </div>
           </div>
@@ -233,21 +233,21 @@ type ChatMessage = {
 const CHAT_MESSAGES: ChatMessage[] = [
   {
     id: 1,
-    person: ALEX,
+    person: ZORO,
     text: "Move the constant over, then halve b.",
     isOwn: false,
     delay: 0.4,
   },
   {
     id: 2,
-    person: JP,
+    person: LUFFY,
     text: "ohhh wait, divide it by 2?",
     isOwn: true,
     delay: 3.1,
   },
   {
     id: 3,
-    person: REMY,
+    person: NAMI,
     text: "Yes — then square (b/2) and add it to both sides.",
     isOwn: false,
     delay: 4.2,
@@ -323,7 +323,7 @@ const ChatDialogScene = () => {
                 Medium
               </span>
               <span className="text-[8.5px] text-white/45 truncate">
-                Help JP solve it
+                Help Luffy solve it
               </span>
             </div>
           </div>
@@ -348,7 +348,7 @@ const ChatDialogScene = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 5.4, duration: 0.3 }}
         >
-          <span>Nova is typing</span>
+          <span>Nami is typing</span>
           <span className="flex gap-[2px]">
             {[0, 1, 2].map((i) => (
               <motion.span
@@ -425,7 +425,7 @@ const ChatDialogScene = () => {
         </div>
       </div>
 
-      {/* Cursor path: enter → hover input while JP types → click send → drift up to read */}
+      {/* Cursor path: enter → hover input while Luffy types → click send → drift up to read */}
       <MockCursor
         waypoints={[
           { t: 0.0, x: 95, y: 95 },

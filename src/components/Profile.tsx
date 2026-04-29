@@ -1,238 +1,194 @@
-import { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Radar,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
   ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
 } from "recharts";
-import { getAuth, updateProfile, onAuthStateChanged } from "firebase/auth";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db, app } from "@/lib/firebase";
-import { useSidebar } from "../components/SideBar";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
 import {
-  Edit,
-  Save,
-  User,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  updateDoc,
+} from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { useSidebar } from "../components/SideBar";
+import {
+  Award,
+  BarChart3,
   Brain,
-  Camera,
-  Mail,
+  Calendar,
   Hash,
+  Lock,
+  Mail,
   MessageCircle,
   Shield,
+  Sparkles,
+  TrendingUp,
+  User,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { courseGroups } from "@/components/ui/courseData";
+import { resolveUserAvatarUrl } from "../lib/profileVisuals";
+
+const DEFAULT_PERSONALITY = {
+  Extraversion: 0,
+  Agreeableness: 0,
+  Conscientiousness: 0,
+  Neuroticism: 0,
+  Openness: 0,
+};
 
 const Profile = () => {
-  const [isEditing, setIsEditing] = useState(false);
+  const { collapsed } = useSidebar();
+
   const [profile, setProfile] = useState({
-    name: "",
+    username: "",
     userId: "",
     email: "",
-    bio: "",
-    profilePicture: "",
-    theme: "system",
-    helped: 0,
-    posted: 0,
-    joined: "",
-    reputation: 0,
     helper: false,
-    bigFivePersonality: {
-      Extraversion: 0,
-      Agreeableness: 0,
-      Conscientiousness: 0,
-      Neuroticism: 0,
-      Openness: 0,
-    },
+    bigFivePersonality: { ...DEFAULT_PERSONALITY },
   });
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-  const [showHelperDialog, setShowHelperDialog] = useState(false);
-  const [activatingHelper, setActivatingHelper] = useState(false);
-  const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [monthlyCategoryCounts, setMonthlyCategoryCounts] = useState<
+    Record<string, Record<string, number>>
+  >({});
+  const [totalContributions, setTotalContributions] = useState(0);
+  const [monthlyContributions, setMonthlyContributions] = useState(0);
 
   useEffect(() => {
-    const auth = getAuth();
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+      if (!user) return;
+
+      try {
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
-
         if (userDoc.exists()) {
           const userData = userDoc.data();
+          const googlePhoto = user.photoURL || null;
+          const resolvedAvatar = googlePhoto || resolveUserAvatarUrl(userData);
           setProfile({
-            name: userData.username || "",
+            username: userData.username || "",
             userId: user.uid,
             email: user.email || "",
-            bio: userData.bio || "",
-            profilePicture: userData.profilePicture || "",
-            theme: userData.theme || "system",
-            helped: userData.helped || 0,
-            posted: userData.posted || 0,
-            joined: userData.joined || "",
-            reputation: userData.reputation || 0,
-            helper: userData.helper || false,
-            bigFivePersonality: userData.bigFivePersonality || {
-              Extraversion: 0,
-              Agreeableness: 0,
-              Conscientiousness: 0,
-              Neuroticism: 0,
-              Openness: 0,
+            helper: userData.helper === true,
+            bigFivePersonality: {
+              ...DEFAULT_PERSONALITY,
+              ...(userData.bigFivePersonality || {}),
             },
           });
+          setAvatarUrl(resolvedAvatar);
+
+          if (
+            googlePhoto &&
+            (userData.profilePicture ?? null) !== googlePhoto
+          ) {
+            try {
+              await updateDoc(userDocRef, { profilePicture: googlePhoto });
+            } catch (err) {
+              console.warn("Failed syncing Google profile picture:", err);
+            }
+          }
         }
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+
+      try {
+        const contributionsRef = collection(
+          db,
+          "users",
+          user.uid,
+          "contributions",
+        );
+        const snapshot = await getDocs(contributionsRef);
+
+        const monthlyCounts: Record<string, Record<string, number>> = {};
+        let total = 0;
+        let monthlyTotal = 0;
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        snapshot.forEach((d) => {
+          const data = d.data();
+          const category = data.category;
+          const timestamp = data.timestamp?.toDate?.();
+          if (category && timestamp) {
+            const month = `${timestamp.getFullYear()}-${String(
+              timestamp.getMonth() + 1,
+            ).padStart(2, "0")}`;
+            if (!monthlyCounts[month]) monthlyCounts[month] = {};
+            monthlyCounts[month][category] =
+              (monthlyCounts[month][category] || 0) + 1;
+            total += 1;
+            if (timestamp >= thirtyDaysAgo) monthlyTotal += 1;
+          }
+        });
+
+        setMonthlyCategoryCounts(monthlyCounts);
+        setTotalContributions(total);
+        setMonthlyContributions(monthlyTotal);
+      } catch (err) {
+        console.error("Failed to load contributions:", err);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  const handleChange = (field: string, value: string) => {
-    setProfile((prev) => ({ ...prev, [field]: value }));
-  };
+  const hasPersonalityData = Object.values(profile.bigFivePersonality).some(
+    (score) => score > 0,
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsEditing(false);
+  const chartData = Object.entries(monthlyCategoryCounts)
+    .map(([month, categories]) => ({
+      name: month,
+      contributions: Object.values(categories).reduce((a, b) => a + b, 0),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-    try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
-          username: profile.name,
-          bio: profile.bio,
-          profilePicture: profile.profilePicture,
-          theme: profile.theme,
-        });
-        await updateProfile(user, {
-          displayName: profile.name,
-          photoURL: profile.profilePicture,
-        });
-        toast.success("Profile updated successfully!");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile.");
+  const categorySums: Record<string, number> = {};
+  Object.values(monthlyCategoryCounts).forEach((categories) => {
+    for (const [cat, count] of Object.entries(categories)) {
+      categorySums[cat] = (categorySums[cat] || 0) + count;
     }
-  };
+  });
+  const sortedCategories = Object.entries(categorySums).sort(
+    (a, b) => b[1] - a[1],
+  );
+  const mostActiveLabel =
+    sortedCategories.length > 0
+      ? `${sortedCategories[0][0]} (${sortedCategories[0][1]})`
+      : "No contributions yet";
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) {
-      toast.error("Please choose an image file (JPEG, PNG, etc.).");
-      return;
-    }
-
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (!user) return;
-
-    setUploadingPhoto(true);
-    try {
-      const storage = getStorage(app);
-      const path = `profilePictures/${user.uid}/${Date.now()}-${file.name}`;
-      const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, { profilePicture: downloadURL });
-      await updateProfile(user, { photoURL: downloadURL });
-      setProfile((prev) => ({ ...prev, profilePicture: downloadURL }));
-      toast.success("Profile picture updated!");
-    } catch (err) {
-      console.error("Profile picture upload failed:", err);
-      toast.error("Failed to update photo. Try again.");
-    } finally {
-      setUploadingPhoto(false);
-      e.target.value = "";
-    }
-  };
-
-  const { collapsed } = useSidebar();
-  const navigate = useNavigate();
-
-  const handlePersonalityQuiz = () => {
-    navigate("/personality-quiz");
-  };
-
-  const handleBecomeHelper = async () => {
-    try {
-      setActivatingHelper(true);
-      const auth = getAuth();
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, {
-        helper: true,
-        helperActivatedAt: serverTimestamp(),
-      });
-
-      setProfile((prev) => ({ ...prev, helper: true }));
-      toast.success("You are now a Sapex Helper.");
-    } catch (error) {
-      console.error("Error activating helper:", error);
-      toast.error("Failed to activate Sapex Helper.");
-    } finally {
-      setActivatingHelper(false);
-      setShowHelperDialog(false);
-    }
-  };
-
-  const handleDeactivateHelper = async () => {
-    try {
-      setActivatingHelper(true);
-      const auth = getAuth();
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, { helper: false });
-
-      setProfile((prev) => ({ ...prev, helper: false }));
-      toast.success("Sapex Helper deactivated.");
-    } catch (error) {
-      console.error("Error deactivating helper:", error);
-      toast.error("Failed to deactivate Sapex Helper.");
-    } finally {
-      setActivatingHelper(false);
-      setShowDeactivateDialog(false);
-    }
-  };
-
-  const hasPersonalityData =
-    profile.bigFivePersonality &&
-    Object.values(profile.bigFivePersonality).some((score) => score > 0);
+  const maxCategoryCount = Math.max(
+    1,
+    ...Object.keys(courseGroups).map((cat) =>
+      Object.values(monthlyCategoryCounts).reduce(
+        (sum, monthData) => sum + (monthData[cat] || 0),
+        0,
+      ),
+    ),
+  );
 
   return (
     <div
@@ -240,214 +196,187 @@ const Profile = () => {
         collapsed ? "pl-[74px] sm:pl-[92px]" : "pl-[220px] xl:pl-[280px]"
       }`}
     >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-16">
-        {/* Hero / header */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:pl-6 lg:pr-8 pt-8 pb-16">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10"
+          className="mb-8"
         >
           <h1 className="text-3xl font-bold text-white font-syncopate tracking-tight">
             Profile
           </h1>
           <p className="text-gray-400 mt-1 text-sm">
-            Manage your account and preferences
+            Your account, personality, and contribution history.
           </p>
         </motion.div>
 
-        {/* Profile card: avatar + info */}
+        {/* Identity card */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
         >
           <Card className="border-white/10 bg-[#12162A]/90 overflow-hidden">
-            <form onSubmit={handleSubmit}>
-              <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-start gap-6">
-                  {/* Avatar with edit overlay */}
-                  <div className="relative group shrink-0">
-                    <Avatar className="h-28 w-28 rounded-2xl border-2 border-white/10 ring-2 ring-[#7CDCBD]/20">
-                      {profile.profilePicture &&
-                      profile.profilePicture.startsWith("http") ? (
-                        <AvatarImage
-                          src={profile.profilePicture}
-                          alt={profile.name}
-                          className="object-cover"
-                        />
-                      ) : (
-                        <AvatarFallback className="rounded-2xl bg-[#1e2433] text-[#7CDCBD] text-3xl">
-                          <User className="w-12 h-12" />
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingPhoto}
-                      className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer disabled:cursor-wait"
-                      aria-label="Change profile picture"
-                    >
-                      {uploadingPhoto ? (
-                        <span className="text-xs text-white font-medium">
-                          Uploading…
-                        </span>
-                      ) : (
-                        <Camera className="w-8 h-8 text-white" />
-                      )}
-                    </button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoChange}
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                <Avatar className="h-24 w-24 rounded-2xl border-2 border-white/10 ring-2 ring-[#7CDCBD]/20 shrink-0 overflow-hidden">
+                  {avatarUrl ? (
+                    <AvatarImage
+                      src={avatarUrl}
+                      alt={profile.username || "User"}
                     />
+                  ) : (
+                    <AvatarFallback className="rounded-2xl text-white text-3xl">
+                      <User className="w-10 h-10" />
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <CardTitle className="text-2xl text-white font-syncopate">
+                      {profile.username || "Unnamed"}
+                    </CardTitle>
+                    {profile.helper && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#7CDCBD]/40 bg-[#7CDCBD]/15 px-2.5 py-0.5 text-[12px] font-medium text-[#7CDCBD]">
+                        <Shield className="w-3 h-3" />
+                        Sapex Helper
+                      </span>
+                    )}
                   </div>
-
-                  <div className="flex-1 min-w-0 space-y-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <CardTitle className="text-xl text-white font-syncopate">
-                        {profile.name || "Your name"}
-                      </CardTitle>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsEditing(true)}
-                        className="border-white/20 text-gray-300 hover:bg-white/10 hover:text-white hover:border-[#7CDCBD]/40"
-                      >
-                        <Edit className="h-3.5 w-3.5 mr-1.5" />
-                        Edit profile
-                      </Button>
-                    </div>
-                    <CardDescription className="text-gray-400 text-sm">
-                      Update your display name and bio below.
-                    </CardDescription>
-                  </div>
+                  <CardDescription className="text-gray-400 text-sm mt-1 flex items-center gap-1.5">
+                    <Lock className="w-3 h-3" />
+                    Profile photo syncs with your Google icon. Uploaded icons
+                    are not supported.
+                  </CardDescription>
                 </div>
-              </CardHeader>
+              </div>
+            </CardHeader>
 
-              <CardContent className="space-y-5">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="name"
-                      className="text-gray-400 font-medium text-sm"
-                    >
-                      Display name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={profile.name}
-                      onChange={(e) => handleChange("name", e.target.value)}
-                      disabled={!isEditing}
-                      className="bg-[#0A0D17] border-white/15 text-white placeholder:text-gray-500 focus-visible:ring-[#7CDCBD]/50 focus-visible:border-[#7CDCBD]/50 disabled:opacity-80"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="userId"
-                      className="text-gray-400 font-medium text-sm flex items-center gap-1.5"
-                    >
-                      <Hash className="w-3.5 h-3.5" />
-                      User ID
-                    </Label>
-                    <Input
-                      id="userId"
-                      value={profile.userId}
-                      disabled
-                      className="bg-[#0A0D17]/50 border-white/10 text-gray-400 text-sm font-mono"
-                    />
-                  </div>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-lg border border-white/10 bg-[#0A0D17]/60 px-4 py-3">
+                <div className="flex items-center gap-1.5 text-gray-400 text-xs uppercase tracking-wider">
+                  <User className="w-3.5 h-3.5" />
+                  Username
                 </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="text-gray-400 font-medium text-sm flex items-center gap-1.5"
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profile.email}
-                    disabled
-                    className="bg-[#0A0D17]/50 border-white/10 text-gray-400"
-                  />
+                <p className="text-white font-medium mt-1 truncate">
+                  {profile.username || "—"}
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-[#0A0D17]/60 px-4 py-3">
+                <div className="flex items-center gap-1.5 text-gray-400 text-xs uppercase tracking-wider">
+                  <Mail className="w-3.5 h-3.5" />
+                  Email
                 </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="bio"
-                    className="text-gray-400 font-medium text-sm"
-                  >
-                    Bio
-                  </Label>
-                  <Textarea
-                    id="bio"
-                    value={profile.bio}
-                    onChange={(e) => handleChange("bio", e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    placeholder="A short bio about you..."
-                    className="bg-[#0A0D17] border-white/15 text-white placeholder:text-gray-500 focus-visible:ring-[#7CDCBD]/50 focus-visible:border-[#7CDCBD]/50 resize-none"
-                  />
+                <p className="text-white font-medium mt-1 truncate">
+                  {profile.email || "—"}
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-[#0A0D17]/60 px-4 py-3 sm:col-span-2">
+                <div className="flex items-center gap-1.5 text-gray-400 text-xs uppercase tracking-wider">
+                  <Hash className="w-3.5 h-3.5" />
+                  User ID
                 </div>
-              </CardContent>
-
-              <AnimatePresence>
-                {isEditing && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <CardFooter className="flex justify-end gap-2 pt-0">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setIsEditing(false)}
-                        className="text-gray-400 hover:text-white"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="bg-[#7CDCBD] hover:bg-[#5FBFAA] text-[#0A0D17] font-medium"
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Save changes
-                      </Button>
-                    </CardFooter>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </form>
+                <p className="text-gray-400 font-mono text-sm mt-1 truncate">
+                  {profile.userId || "—"}
+                </p>
+              </div>
+            </CardContent>
           </Card>
         </motion.div>
 
-        <div className="grid gap-6 mt-8 lg:grid-cols-2">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+          {[
+            {
+              icon: MessageCircle,
+              label: "Total helped",
+              hint: "All-time contributions",
+              value: totalContributions,
+              delay: 0.05,
+            },
+            {
+              icon: Calendar,
+              label: "This month",
+              hint: "Last 30 days",
+              value: monthlyContributions,
+              delay: 0.1,
+            },
+            {
+              icon: Award,
+              label: "Most active",
+              hint: "Your top category",
+              value: mostActiveLabel,
+              delay: 0.15,
+              isText: true,
+            },
+          ].map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: stat.delay }}
+              >
+                <Card className="relative border-white/10 bg-[#12162A]/90 overflow-hidden h-full hover:border-[#7CDCBD]/30 transition-colors">
+                  <div
+                    aria-hidden
+                    className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-[#7CDCBD]/5 blur-2xl"
+                  />
+                  <CardHeader className="pb-2 relative">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-300 font-syncopate uppercase tracking-wider">
+                        {stat.label}
+                      </CardTitle>
+                      <div className="w-9 h-9 rounded-lg bg-[#7CDCBD]/10 flex items-center justify-center text-[#7CDCBD]">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <CardDescription className="text-gray-500 text-xs mt-1">
+                      {stat.hint}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="relative">
+                    {stat.isText ? (
+                      <p className="text-lg font-semibold text-white truncate">
+                        {stat.value}
+                      </p>
+                    ) : (
+                      <p className="text-3xl font-bold text-white tabular-nums">
+                        {stat.value}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Charts row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           {/* Personality */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-1"
           >
             <Card className="border-white/10 bg-[#12162A]/90 h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="text-lg text-white font-syncopate flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-[#7CDCBD]" />
-                  Personality
-                </CardTitle>
+                <div className="flex items-center gap-2 text-[#7CDCBD]">
+                  <Brain className="w-5 h-5" />
+                  <CardTitle className="text-lg text-white font-syncopate">
+                    Personality
+                  </CardTitle>
+                </div>
                 <CardDescription className="text-gray-400">
-                  Your Big Five traits from the quiz
+                  Your Big Five traits
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex-1">
+              <CardContent className="flex-1 flex flex-col">
                 {hasPersonalityData ? (
                   <div className="w-full h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -457,7 +386,7 @@ const Profile = () => {
                         outerRadius="75%"
                         data={Object.entries(profile.bigFivePersonality).map(
                           ([trait, score]) => ({
-                            trait: trait.slice(0),
+                            trait,
                             value: Math.min(score * 120, 100),
                           }),
                         )}
@@ -479,162 +408,214 @@ const Profile = () => {
                     </ResponsiveContainer>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">
-                    You haven’t taken the personality quiz yet.
-                  </p>
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 py-8 text-center">
+                    <div className="w-12 h-12 rounded-full bg-[#7CDCBD]/10 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-[#7CDCBD]" />
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      You haven’t taken the personality test yet.
+                    </p>
+                    <p className="text-xs text-gray-500 max-w-[220px]">
+                      Answer 44 quick questions to unlock your Big Five chart.
+                    </p>
+                  </div>
                 )}
+
+                <div className="mt-4 pt-4 border-t border-white/[0.06] flex items-center justify-between gap-3">
+                  <p className="text-[12px] text-gray-500 leading-snug">
+                    {hasPersonalityData
+                      ? "Want a more accurate read? You can retake the test anytime."
+                      : "About 5 minutes."}
+                  </p>
+                  <Link
+                    to="/personality-quiz"
+                    className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#7CDCBD] hover:bg-[#5FBFAA] text-[#0A0D17] text-xs font-semibold px-3 py-2 transition-colors"
+                  >
+                    <Brain className="w-3.5 h-3.5" />
+                    {hasPersonalityData ? "Retake test" : "Take the test"}
+                  </Link>
+                </div>
               </CardContent>
-              <CardFooter>
-                <Button
-                  onClick={handlePersonalityQuiz}
-                  className="w-full bg-[#12162A] border border-[#7CDCBD]/40 text-[#7CDCBD] hover:bg-[#7CDCBD]/10 font-medium"
-                >
-                  <Brain className="w-4 h-4 mr-2" />
-                  {hasPersonalityData ? "Retake quiz" : "Take personality quiz"}
-                </Button>
-              </CardFooter>
             </Card>
           </motion.div>
 
-          {/* Stats */}
+          {/* Contribution history */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
+            transition={{ delay: 0.25 }}
+            className="lg:col-span-2"
           >
-            <Card className="border-white/10 bg-[#12162A]/90 h-full">
+            <Card className="border-white/10 bg-[#12162A]/90 h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="text-lg text-white font-syncopate flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5 text-[#7CDCBD]" />
-                  Activity
-                </CardTitle>
+                <div className="flex items-center gap-2 text-[#7CDCBD]">
+                  <TrendingUp className="w-5 h-5" />
+                  <CardTitle className="text-lg text-white font-syncopate">
+                    Contribution history
+                  </CardTitle>
+                </div>
                 <CardDescription className="text-gray-400">
-                  Your help board activity
+                  Problems helped over time
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-0">
-                <div className="flex items-center justify-between py-4 border-b border-white/10">
-                  <span className="text-gray-400">Problems helped</span>
-                  <span className="text-xl font-semibold text-white tabular-nums">
-                    {profile.helped}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-4 border-b border-white/10">
-                  <span className="text-gray-400">Problems posted</span>
-                  <span className="text-xl font-semibold text-white tabular-nums">
-                    {profile.posted}
-                  </span>
-                </div>
+              <CardContent className="flex-1 min-h-[280px]">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <AreaChart
+                      data={chartData}
+                      margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient
+                          id="contribGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor="#7CDCBD"
+                            stopOpacity={0.4}
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor="#7CDCBD"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="rgba(255,255,255,0.06)"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fill: "#9ca3af", fontSize: 11 }}
+                        axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                        tickLine={{ stroke: "rgba(255,255,255,0.06)" }}
+                      />
+                      <YAxis
+                        tick={{ fill: "#9ca3af", fontSize: 11 }}
+                        axisLine={false}
+                        tickLine={{ stroke: "rgba(255,255,255,0.06)" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#12162A",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: "8px",
+                        }}
+                        labelStyle={{ color: "#e5e7eb" }}
+                        formatter={(value: number) => [value, "Contributions"]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="contributions"
+                        stroke="#7CDCBD"
+                        strokeWidth={2}
+                        fill="url(#contribGradient)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[280px] flex items-center justify-center text-gray-500 text-sm">
+                    No contribution data yet. Help someone on the help board to
+                    see your history here.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
-        {/* Sapex Helper */}
+        {/* By category */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-8 flex flex-wrap items-center gap-4"
+          transition={{ delay: 0.3 }}
+          className="mt-6"
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={profile.helper ? "active" : "inactive"}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              className="flex flex-wrap items-center gap-3"
-            >
-              {profile.helper ? (
-                <Button
-                  onClick={() => setShowDeactivateDialog(true)}
-                  className="bg-[#7CDCBD]/20 text-[#7CDCBD] hover:bg-[#7CDCBD]/30 border border-[#7CDCBD]/40 rounded-full px-6 py-2.5"
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Sapex Helper · Active
-                </Button>
+          <Card className="border-white/10 bg-[#12162A]/90">
+            <CardHeader>
+              <div className="flex items-center gap-2 text-[#7CDCBD]">
+                <BarChart3 className="w-5 h-5" />
+                <CardTitle className="text-lg text-white font-syncopate">
+                  By category
+                </CardTitle>
+              </div>
+              <CardDescription className="text-gray-400">
+                Where you’ve helped the most
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {totalContributions === 0 ? (
+                <div className="min-h-[160px] flex items-center justify-center text-center text-gray-500 text-sm rounded-xl border border-dashed border-white/10">
+                  No category data yet.
+                </div>
               ) : (
-                <Button
-                  onClick={() => setShowHelperDialog(true)}
-                  className="bg-[#7CDCBD] hover:bg-[#5FBFAA] text-[#0A0D17] font-medium rounded-full px-6 py-2.5"
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Become a Sapex Helper
-                </Button>
+                <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3.5">
+                  {Object.keys(courseGroups)
+                    .map((category) => {
+                      const count = Object.values(monthlyCategoryCounts).reduce(
+                        (sum, monthData) => sum + (monthData[category] || 0),
+                        0,
+                      );
+                      return { category, count };
+                    })
+                    .sort((a, b) => b.count - a.count)
+                    .map(({ category, count }) => {
+                      const pct =
+                        maxCategoryCount > 0
+                          ? (count / maxCategoryCount) * 100
+                          : 0;
+                      const isTop = count > 0 && count === maxCategoryCount;
+
+                      return (
+                        <div key={category} className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <span
+                              className={`text-sm truncate ${
+                                isTop
+                                  ? "text-white font-medium"
+                                  : "text-gray-300"
+                              }`}
+                            >
+                              {category}
+                            </span>
+                            <span
+                              className={`text-sm tabular-nums shrink-0 ${
+                                isTop
+                                  ? "text-[#7CDCBD] font-semibold"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {count}
+                            </span>
+                          </div>
+                          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div
+                              className={`h-full rounded-full ${
+                                isTop ? "bg-[#7CDCBD]" : "bg-[#7CDCBD]/50"
+                              }`}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${pct}%` }}
+                              transition={{
+                                duration: 0.6,
+                                ease: "easeOut",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               )}
-            </motion.div>
-          </AnimatePresence>
-          <p className="text-xs text-gray-500 max-w-md">
-            Sapex Helpers support others with respect and empathy. This is a
-            space for guidance and learning, not social media.
-          </p>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
-
-      {/* Dialogs */}
-      <Dialog open={showHelperDialog} onOpenChange={setShowHelperDialog}>
-        <DialogContent className="border-white/10 bg-[#12162A] text-white">
-          <DialogHeader>
-            <DialogTitle className="font-syncopate">
-              Become a Sapex Helper
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              You’ll support students respectfully and help them through tough
-              times. Be helpful and kind to the best of your ability.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowHelperDialog(false)}
-              className="border-white/20 text-gray-300 hover:bg-white/10"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleBecomeHelper}
-              disabled={activatingHelper}
-              className="bg-[#7CDCBD] hover:bg-[#5FBFAA] text-[#0A0D17]"
-            >
-              {activatingHelper ? "Activating…" : "I agree"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={showDeactivateDialog}
-        onOpenChange={setShowDeactivateDialog}
-      >
-        <DialogContent className="border-white/10 bg-[#12162A] text-white">
-          <DialogHeader>
-            <DialogTitle className="font-syncopate">
-              Deactivate Sapex Helper
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              You’ll no longer appear as a Helper. You can turn it back on
-              anytime.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeactivateDialog(false)}
-              className="border-white/20 text-gray-300 hover:bg-white/10"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDeactivateHelper}
-              disabled={activatingHelper}
-              variant="destructive"
-              className="bg-red-600/90 hover:bg-red-600 text-white"
-            >
-              {activatingHelper ? "Deactivating…" : "Deactivate"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

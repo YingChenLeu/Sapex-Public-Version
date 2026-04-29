@@ -35,6 +35,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageMathContent } from "@/components/MessageMathContent";
+import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
 dayjs.extend(relativeTime);
 
 /** Escape `{` / `}` so user text inside our LaTeX templates cannot break delimiters. */
@@ -278,10 +279,11 @@ export const ProblemChatDialog = ({
     );
 
     const setActive = async () => {
-      let avatar = null;
+      let avatar: string | null = null;
       const userDoc = await getDoc(doc(db, "users", currentUser.uid));
       if (userDoc.exists()) {
-        avatar = userDoc.data().profilePicture || null;
+        const data = userDoc.data();
+        avatar = resolveUserAvatarUrl(data);
       }
       await setDoc(activeUserRef, {
         name: currentUser.displayName || "Anonymous",
@@ -380,11 +382,12 @@ export const ProblemChatDialog = ({
     setIsSending(true);
 
     try {
-      let avatar = null;
+      let avatar: string | null = null;
       if (currentUser.uid) {
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         if (userDoc.exists()) {
-          avatar = userDoc.data().profilePicture || null;
+          const data = userDoc.data();
+          avatar = resolveUserAvatarUrl(data);
         }
       }
 
@@ -643,7 +646,7 @@ export const ProblemChatDialog = ({
                                 alt={message.user.name || "User"}
                               />
                             ) : (
-                              <AvatarFallback className="bg-[#2a3142] text-gray-200">
+                              <AvatarFallback className="text-gray-200">
                                 <CircleUserRound className="w-4 h-4" />
                               </AvatarFallback>
                             )}

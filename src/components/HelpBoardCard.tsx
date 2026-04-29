@@ -17,7 +17,6 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion } from "framer-motion";
 
-
 type Problem = {
   id: string;
   title: string;
@@ -30,6 +29,7 @@ type Problem = {
   user: {
     name: string;
     avatar?: string;
+    color?: string | null;
     uid?: string;
   };
   responses: number;
@@ -58,7 +58,7 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
       const snapshot = await getDocs(messagesRef);
       setMessageCount(snapshot.size); // snapshot.size = number of docs
     };
-  
+
     fetchMessageCount();
   }, [problem?.id]);
 
@@ -93,7 +93,8 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
             <Badge
               className={`px-2 py-1 rounded-full text-[11px] font-semibold border-0 ${urgencyColors[problem.urgency]} bg-opacity-20`}
             >
-              {problem.urgency.charAt(0).toUpperCase() + problem.urgency.slice(1)}{" "}
+              {problem.urgency.charAt(0).toUpperCase() +
+                problem.urgency.slice(1)}{" "}
               urgency
             </Badge>
           </div>
@@ -136,7 +137,12 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
                     }}
                   />
                 ) : (
-                  <AvatarFallback className="bg-blue-500 text-white text-xs">
+                  <AvatarFallback
+                    className="text-white text-xs"
+                    style={{
+                      backgroundColor: problem.user?.color || "#2a3142",
+                    }}
+                  >
                     {problem.user?.name?.charAt(0) || "?"}
                   </AvatarFallback>
                 )}
@@ -147,7 +153,9 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
                 </span>
                 <span className="text-[11px] text-slate-500">
                   {problem.createdAt
-                    ? formatDistanceToNow(problem.createdAt, { addSuffix: true })
+                    ? formatDistanceToNow(problem.createdAt, {
+                        addSuffix: true,
+                      })
                     : "Just now"}
                 </span>
               </div>

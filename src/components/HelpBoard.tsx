@@ -9,6 +9,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { collection, onSnapshot, getDoc, doc } from "firebase/firestore";
 import Dropdown from "./Dropdown";
+import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
 
 type Problem = {
   id: string;
@@ -22,6 +23,7 @@ type Problem = {
   user: {
     name: string;
     avatar?: string;
+    color?: string | null;
     uid?: string;
   };
   responses: number;
@@ -60,7 +62,7 @@ const HelpBoard = () => {
         const userDoc = await getDoc(doc(db, "users", uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setProfilePhoto(data.profilePicture || "");
+          setProfilePhoto(resolveUserAvatarUrl(data) || "");
           setUserName(data.username || "User");
         }
       } catch (error) {
@@ -90,6 +92,7 @@ const HelpBoard = () => {
             user: {
               name: data.user?.name || "Anonymous",
               avatar: data.user?.avatar || "",
+              color: data.user?.color ?? null,
               uid: data.user?.uid || "",
             },
             responses: data.responses ?? 0,
@@ -100,7 +103,7 @@ const HelpBoard = () => {
       },
       (error) => {
         console.error("Error listening to problems:", error);
-      }
+      },
     );
 
     setLoading(false);
@@ -141,7 +144,7 @@ const HelpBoard = () => {
   const filteredProblems = problems.filter((problem) =>
     selectedCategory === "All"
       ? true
-      : problem.category.toLowerCase() === selectedCategory.toLowerCase()
+      : problem.category.toLowerCase() === selectedCategory.toLowerCase(),
   );
 
   const ease = [0.4, 0, 0.2, 1] as const;
@@ -185,10 +188,7 @@ const HelpBoard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08, ease }}
         >
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               onClick={() => navigate("/post-problem")}
               className="group relative flex items-center gap-2.5 rounded-xl bg-[#7CDCBD] text-[#0A0D17] font-semibold shadow-[0_0_20px_-4px_rgba(124,220,189,0.4)] hover:bg-[#5FBFAA] hover:shadow-[0_0_24px_-2px_rgba(124,220,189,0.5)] transition-all duration-300 ease-out h-11 px-5 border-0"

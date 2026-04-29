@@ -25,10 +25,10 @@ type Tile = {
 };
 
 const TILES: Tile[] = [
-  { initials: "AX", name: "Alex", bg: "#A78BFA" },
-  { initials: "RM", name: "Remy", bg: "#F472B6", raised: true },
-  { initials: "NV", name: "Nova", bg: "#7CDCBD", muted: true },
-  { initials: "JP", name: "JP", bg: "#60A5FA" },
+  { initials: "ZR", name: "Zoro", bg: "#A78BFA" },
+  { initials: "NA", name: "Nami", bg: "#F472B6", raised: true },
+  { initials: "RB", name: "Robin", bg: "#7CDCBD", muted: true },
+  { initials: "LF", name: "Luffy", bg: "#60A5FA" },
 ];
 
 const Waveform = ({ active }: { active: boolean }) => (
@@ -65,19 +65,19 @@ const Waveform = ({ active }: { active: boolean }) => (
 const SESSIONS = [
   {
     subject: "Calculus exam prep",
-    by: "Alex",
+    by: "Zoro",
     when: "starting now",
     color: "#A78BFA",
   },
   {
     subject: "AP Chem review",
-    by: "Remy",
+    by: "Nami",
     when: "in 10 min",
     color: "#F472B6",
   },
   {
     subject: "AP Lit essay lab",
-    by: "Nova",
+    by: "Robin",
     when: "30 min ago",
     color: "#7CDCBD",
   },
@@ -317,14 +317,14 @@ const VideoRoomScene = () => {
           style={{ color: ACCENT }}
         />
         <div className="min-w-0">
-          <div className="text-[9px] text-white/50">Remy · 0:34</div>
+          <div className="text-[9px] text-white/50">Nami · 0:34</div>
           <div className="text-[10px] text-white/85 leading-snug truncate">
             sharing my screen for the integral on slide 4
           </div>
         </div>
       </motion.div>
 
-      {/* Cursor: enter → Remy's raised hand → Nova's mute icon → chat strip */}
+      {/* Cursor: enter → Nami's raised hand → Robin's mute icon → chat strip */}
       <MockCursor
         waypoints={[
           { t: 0.4, x: 95, y: 95 },

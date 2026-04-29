@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { X, Send, Smile, UserRound } from "lucide-react";
 import { useSidebar } from "./SideBar";
 import EmojiPicker, { Theme } from "emoji-picker-react";
+import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
 // Message type for wellness chat, similar to ProblemChatDialog
 type Message = {
   id: string;
@@ -79,9 +80,10 @@ const WellnessChatDialog = ({
       if (helperUid && currentUser?.uid !== helperUid) {
         const helperSnap = await getDoc(doc(db, "users", helperUid));
         if (helperSnap.exists()) {
+          const data = helperSnap.data();
           setHelperInfo({
-            name: helperSnap.data().displayName || "Supporter",
-            avatar: helperSnap.data().profilePicture,
+            name: data.displayName || "Supporter",
+            avatar: resolveUserAvatarUrl(data) || undefined,
           });
         }
       }
@@ -112,11 +114,12 @@ const WellnessChatDialog = ({
   // Send message to Firestore (esupport collection, aligned with ProblemChatDialog)
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !currentUser) return;
-    let avatar = null;
+    let avatar: string | null = null;
     if (currentUser?.uid) {
       const userDoc = await getDoc(doc(db, "users", currentUser.uid));
       if (userDoc.exists()) {
-        avatar = userDoc.data().profilePicture || null;
+        const data = userDoc.data();
+        avatar = resolveUserAvatarUrl(data);
       }
     }
     await addDoc(collection(db, "esupport", sessionId, "messages"), {

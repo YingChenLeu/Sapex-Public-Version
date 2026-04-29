@@ -23,8 +23,8 @@ import Auth from "./components/Auth";
 import HelpBoard from "./components/HelpBoard";
 import StudyRooms from "./components/StudyRooms";
 import PostProblem from "./components/PostProblem";
-import Contributions from "./components/Contribution";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChooseUsername from "./components/ChooseUsername";
 import StillInDevelopment from "./components/StillInDevelopment";
 import Profile from "./components/Profile";
 import WellnessSupport from "./components/WellnessSupport";
@@ -35,6 +35,9 @@ import NotificationListener from "./components/NotificationListener";
 import Main from "./components/Main";
 import { Toaster } from "sonner";
 import { OriginsLab } from "./components/OriginsLab";
+import RateYourChance from "./components/RateYourChance";
+import RateYourChanceNew from "./components/RateYourChanceNew";
+import RateYourChanceDetail from "./components/RateYourChanceDetail";
 import { useLocation } from "react-router-dom";
 
 const APP_NAME = "Sapex";
@@ -47,8 +50,11 @@ const getPageTitle = (pathname: string) => {
   if (pathname === "/post-problem") return "Post a Problem";
   if (pathname === "/study-rooms") return "Study Rooms";
   if (pathname === "/origins-lab") return "Origins Lab";
+  if (pathname === "/rate-your-chance") return "Rate Your Chance";
+  if (pathname === "/rate-your-chance/new") return "New Profile";
+  if (pathname.startsWith("/rate-your-chance/")) return "Profile Review";
   if (pathname === "/wellness-support") return "Wellness Support";
-  if (pathname === "/contributions") return "Contributions";
+  if (pathname === "/choose-username") return "Choose Username";
   if (pathname === "/personality-quiz") return "Personality Quiz";
   if (pathname === "/finding-match") return "Finding Match";
   if (pathname === "/chat/:id" || pathname.startsWith("/chat/")) return "Chat";
@@ -326,15 +332,14 @@ function App() {
           />
           <Route
             path="/contributions"
+            element={<Navigate to="/user-profile" replace />}
+          />
+          <Route
+            path="/choose-username"
             element={
-              <div>
-                <ProtectedRoute>
-                  <div>
-                    <Contributions />
-                    <SideBar />
-                  </div>
-                </ProtectedRoute>
-              </div>
+              <ProtectedRoute>
+                <ChooseUsername />
+              </ProtectedRoute>
             }
           />
           <Route
@@ -383,6 +388,36 @@ function App() {
                 <div>
                   <SideBar />
                   <OriginsLab />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rate-your-chance"
+            element={
+              <ProtectedRoute>
+                <div>
+                  <SideBar />
+                  <RateYourChance />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rate-your-chance/new"
+            element={
+              <ProtectedRoute>
+                <RateYourChanceNew />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rate-your-chance/:id"
+            element={
+              <ProtectedRoute>
+                <div>
+                  <SideBar />
+                  <RateYourChanceDetail />
                 </div>
               </ProtectedRoute>
             }
