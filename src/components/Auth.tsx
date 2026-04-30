@@ -13,7 +13,14 @@ import { useEffect, useState } from "react";
 import { auth, db, provider } from "../lib/firebase";
 import { signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  type DocumentData,
+  type UpdateData,
+} from "firebase/firestore";
 
 const COC_ACK_KEY = "sapex:coc_ack_v1";
 
@@ -133,7 +140,7 @@ const Auth = () => {
         await createInitialUserDoc(user.uid, user.email, googlePhotoUrl);
       } else {
         const current = userSnap.data();
-        const updates: Record<string, unknown> = {};
+        const updates: UpdateData<DocumentData> = {};
         const normalizedEmail = (user.email ?? "").trim().toLowerCase() || null;
         if ((current.email ?? null) !== normalizedEmail) {
           updates.email = normalizedEmail;
