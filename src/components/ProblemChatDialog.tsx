@@ -36,6 +36,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageMathContent } from "@/components/MessageMathContent";
 import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
+import { containsSevereProfanity } from "@/lib/profanity";
+import { toast } from "sonner";
 dayjs.extend(relativeTime);
 
 /** Escape `{` / `}` so user text inside our LaTeX templates cannot break delimiters. */
@@ -377,6 +379,10 @@ export const ProblemChatDialog = ({
     const text = newMessage.trim();
     if (!text || !currentUser) return;
     if (sendingRef.current) return;
+    if (containsSevereProfanity(text)) {
+      toast.error("Message blocked: please avoid severe profanity.");
+      return;
+    }
 
     sendingRef.current = true;
     setIsSending(true);

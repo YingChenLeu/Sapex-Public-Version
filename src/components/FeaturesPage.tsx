@@ -1,9 +1,17 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle2, HeartPulse, MessagesSquare, Users } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  GraduationCap,
+  HeartPulse,
+  MessagesSquare,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AcademicHubDemo,
+  RateYourChanceDemo,
   StudyRoomsDemo,
   WellnessDemo,
 } from "./ui/FeatureShowcase";
@@ -14,6 +22,12 @@ const FEATURES = [
     copy: "Ask questions and solve together in real time.",
     Icon: MessagesSquare,
     Demo: AcademicHubDemo,
+  },
+  {
+    title: "Rate Your Chance",
+    copy: "Anonymous college profile reviews with ratings and comments.",
+    Icon: GraduationCap,
+    Demo: RateYourChanceDemo,
   },
   {
     title: "Wellness Chat",

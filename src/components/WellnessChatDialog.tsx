@@ -24,6 +24,8 @@ import { X, Send, Smile, UserRound } from "lucide-react";
 import { useSidebar } from "./SideBar";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
+import { containsSevereProfanity } from "@/lib/profanity";
+import { toast } from "sonner";
 // Message type for wellness chat, similar to ProblemChatDialog
 type Message = {
   id: string;
@@ -113,7 +115,12 @@ const WellnessChatDialog = ({
 
   // Send message to Firestore (esupport collection, aligned with ProblemChatDialog)
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentUser) return;
+    const text = newMessage.trim();
+    if (!text || !currentUser) return;
+    if (containsSevereProfanity(text)) {
+      toast.error("Message blocked: please avoid severe profanity.");
+      return;
+    }
     let avatar: string | null = null;
     if (currentUser?.uid) {
       const userDoc = await getDoc(doc(db, "users", currentUser.uid));
@@ -123,7 +130,7 @@ const WellnessChatDialog = ({
       }
     }
     await addDoc(collection(db, "esupport", sessionId, "messages"), {
-      content: newMessage.trim(),
+      content: text,
       createdAt: serverTimestamp(),
       user: {
         name: currentUser.displayName || "Anonymous",

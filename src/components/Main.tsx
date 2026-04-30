@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpenText, Eclipse, Codesandbox, Video } from "lucide-react";
+import {
+  BookOpenText,
+  Eclipse,
+  Codesandbox,
+  Video,
+  GraduationCap,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSidebar } from "./SideBar";
 
@@ -17,12 +23,20 @@ const orbitalItems = [
     angle: 0,
   },
   {
+    to: "/rate-your-chance",
+    label: "Rate Your Chance",
+    shortLabel: "Chance",
+    icon: GraduationCap,
+    color: "#FBBF24",
+    angle: 72,
+  },
+  {
     to: "/study-rooms",
     label: "Study Rooms",
     shortLabel: "Study",
     icon: Video,
     color: "#60A5FA",
-    angle: 90,
+    angle: 144,
   },
   {
     to: "/wellness-support",
@@ -30,7 +44,7 @@ const orbitalItems = [
     shortLabel: "Wellness",
     icon: Eclipse,
     color: "#A78BFA",
-    angle: 180,
+    angle: 216,
   },
   {
     to: "/origins-lab",
@@ -38,7 +52,7 @@ const orbitalItems = [
     shortLabel: "Origins",
     icon: Codesandbox,
     color: "#5FBFAA",
-    angle: 270,
+    angle: 288,
   },
 ];
 

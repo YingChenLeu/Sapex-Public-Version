@@ -19,6 +19,7 @@ import SoftAurora from "./ui/SoftAurora";
 import BorderGlow from "./ui/BorderGlow";
 import {
   AcademicHubDemo,
+  RateYourChanceDemo,
   WellnessDemo,
   StudyRoomsDemo,
 } from "./ui/FeatureShowcase";
@@ -52,6 +53,12 @@ const PREVIEWS = [
     title: "Academic Center",
     copy: "Post fast. Get answers fast.",
     Demo: AcademicHubDemo,
+    accent: "#7CDCBD",
+  },
+  {
+    title: "Rate Your Chance",
+    copy: "Anonymous profile reviews and peer ratings.",
+    Demo: RateYourChanceDemo,
     accent: "#7CDCBD",
   },
   {
@@ -183,7 +190,7 @@ function LandingPage() {
                 fillOpacity={0.22}
               >
                 <div className="p-4 sm:p-5">
-                  <AcademicHubDemo />
+                  <RateYourChanceDemo />
                 </div>
               </BorderGlow>
 

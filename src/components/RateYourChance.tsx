@@ -156,6 +156,8 @@ const RateYourChance = () => {
     return working;
   }, [posts, filter, searchTerm, regionFilter]);
 
+  const selectedRegion = regionFilter ? REGION_BY_ID[regionFilter] : null;
+
   return (
     <div
       className={`bg-[#0A0D17] min-h-screen transition-all duration-300 ${
@@ -210,24 +212,42 @@ const RateYourChance = () => {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
-          className="mt-6 rounded-2xl border border-white/10 bg-[#101320]/60 p-3 sm:p-4"
+          className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,22,35,0.92),rgba(10,13,23,0.96))] shadow-[0_20px_60px_-32px_rgba(0,0,0,0.7)]"
         >
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2 text-sm text-white/90">
-              <Globe2 className="w-4 h-4 text-[#7CDCBD]" />
-              <span className="font-medium">Browse by region</span>
-              <span className="text-xs text-gray-500">
-                {regionFilter
-                  ? `Showing ${REGION_BY_ID[regionFilter].label}`
-                  : "Click a region to filter"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
+          <div className="border-b border-white/8 px-4 py-4 sm:px-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-sm text-white/90">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#7CDCBD]/20 bg-[#7CDCBD]/10">
+                    <Globe2 className="h-4 w-4 text-[#7CDCBD]" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-white">Browse by region</div>
+                    <div className="mt-0.5 text-xs leading-snug text-gray-500">
+                      {selectedRegion
+                        ? `Focused on ${selectedRegion.label}`
+                        : "Use the interactive atlas or region chips to narrow the feed."}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {selectedRegion && (
+                  <div className="rounded-xl border border-[#7CDCBD]/25 bg-[#7CDCBD]/10 px-3 py-1.5 text-[11px] text-[#DFF8EF]">
+                    <span className="font-semibold text-[#7CDCBD]">
+                      {selectedRegion.short}
+                    </span>
+                    <span className="ml-2 text-white/55">
+                      {regionCounts[selectedRegion.id] ?? 0} profiles
+                    </span>
+                  </div>
+                )}
               {regionFilter && (
                 <button
                   type="button"
                   onClick={() => setRegionFilter(null)}
-                  className="rounded-xl border border-white/10 bg-transparent text-gray-300 hover:bg-white/5 hover:text-white text-xs font-medium px-3 py-1.5"
+                  className="rounded-xl border border-white/10 bg-transparent px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-white/5 hover:text-white"
                 >
                   Clear region
                 </button>
@@ -235,29 +255,32 @@ const RateYourChance = () => {
               <button
                 type="button"
                 onClick={() => setShowMap((s) => !s)}
-                className="rounded-xl border border-white/10 bg-transparent text-gray-300 hover:bg-white/5 hover:text-white text-xs font-medium px-3 py-1.5"
+                className="rounded-xl border border-white/10 bg-transparent px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-white/5 hover:text-white"
               >
-                {showMap ? "Hide map" : "Show map"}
+                {showMap ? "Hide atlas" : "Show atlas"}
               </button>
+              </div>
             </div>
           </div>
 
           {showMap && (
-            <WorldRegionMap
-              selected={regionFilter}
-              counts={regionCounts}
-              onSelect={(r) => setRegionFilter(r)}
-            />
+            <div className="px-4 pt-4 sm:px-5">
+              <WorldRegionMap
+                selected={regionFilter}
+                counts={regionCounts}
+                onSelect={(r) => setRegionFilter(r)}
+              />
+            </div>
           )}
 
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2 px-4 py-4 sm:px-5">
             <button
               type="button"
               onClick={() => setRegionFilter(null)}
-              className={`px-2.5 py-1 text-[11px] rounded-lg transition-colors ${
+              className={`rounded-xl px-3 py-1.5 text-[11px] transition-colors ${
                 regionFilter === null
-                  ? "bg-[#7CDCBD] text-[#0A0D17] font-semibold"
-                  : "bg-white/5 text-gray-300 hover:bg-white/10"
+                  ? "bg-[#7CDCBD] font-semibold text-[#0A0D17]"
+                  : "border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
               }`}
             >
               All regions
@@ -270,15 +293,20 @@ const RateYourChance = () => {
                   key={r.id}
                   type="button"
                   onClick={() => setRegionFilter(active ? null : r.id)}
-                  className={`px-2.5 py-1 text-[11px] rounded-lg transition-colors inline-flex items-center gap-1.5 ${
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] transition-colors ${
                     active
-                      ? "bg-[#7CDCBD] text-[#0A0D17] font-semibold"
-                      : "bg-white/5 text-gray-300 hover:bg-white/10"
+                      ? "bg-[#7CDCBD] font-semibold text-[#0A0D17]"
+                      : "border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
                   }`}
                   title={r.examples}
                 >
-                  <MapPinned className="w-3 h-3" />
-                  {r.short}
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      active ? "bg-[#0A0D17]/70" : "bg-[#7CDCBD]"
+                    }`}
+                  />
+                  <MapPinned className="h-3 w-3" />
+                  <span>{r.short}</span>
                   {count > 0 && (
                     <span
                       className={`tabular-nums ${

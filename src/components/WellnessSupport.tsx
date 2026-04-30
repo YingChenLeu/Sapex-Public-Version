@@ -18,6 +18,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { incrementUsage } from "@/lib/stats";
 import { Card, CardContent } from "./ui/card";
+import { containsSevereProfanity } from "@/lib/profanity";
 
 const iconClass = "size-5 text-neutral-300";
 
@@ -81,9 +82,13 @@ const WellnessSupport = () => {
         actual: null,
         type: type,
       });
+      const systemText = "Conversation started.";
+      if (containsSevereProfanity(systemText)) {
+        throw new Error("Profanity blocked in system message.");
+      }
       await addDoc(collection(db, "esupport", docRef.id, "messages"), {
         from: "system",
-        text: "Conversation started.",
+        text: systemText,
         timestamp: new Date(),
       });
       await incrementUsage(db, "wellnessSupportUsed");
