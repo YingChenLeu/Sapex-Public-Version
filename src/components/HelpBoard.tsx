@@ -10,6 +10,7 @@ import { db } from "../lib/firebase";
 import { collection, onSnapshot, getDoc, doc } from "firebase/firestore";
 import Dropdown from "./Dropdown";
 import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
+import { courseGroups } from "@/components/ui/courseData";
 
 type Problem = {
   id: string;
@@ -30,14 +31,7 @@ type Problem = {
   likes: number;
 };
 
-const categories = [
-  "All",
-  "Mathematics",
-  "Science",
-  "English",
-  "Social Sciences",
-  "Foreign Languages",
-];
+const categories = ["All", ...Object.keys(courseGroups)];
 
 const HelpBoard = () => {
   const [, setProfilePhoto] = useState("");

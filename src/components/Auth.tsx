@@ -21,6 +21,7 @@ import {
   type DocumentData,
   type UpdateData,
 } from "firebase/firestore";
+import { courseGroups } from "@/components/ui/courseData";
 
 const COC_ACK_KEY = "sapex:coc_ack_v1";
 
@@ -61,6 +62,10 @@ const Auth = () => {
     googlePhotoUrl: string | null,
   ) => {
     const normalizedEmail = (emailValue ?? "").trim().toLowerCase();
+    const contributions = Object.fromEntries(
+      Object.keys(courseGroups).map((category) => [category, 0]),
+    );
+
     await setDoc(doc(db, "users", uid), {
       uid,
       username: "",
@@ -69,14 +74,7 @@ const Auth = () => {
       bio: "",
       isAdmin: false,
       profilePicture: googlePhotoUrl || "/default-avatar.png",
-      contributions: {
-        English: 0,
-        "Social Sciences": 0,
-        "Foreign Languages": 0,
-        Mathematics: 0,
-        Science: 0,
-        Arts: 0,
-      },
+      contributions,
       bigFivePersonality: {
         Openness: 0,
         Conscientiousness: 0,
