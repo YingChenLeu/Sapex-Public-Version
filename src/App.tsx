@@ -9,6 +9,7 @@ import AboutInitiative from "./components/AboutInitiative";
 import TechStack from "./components/TechStack";
 import Community from "./components/Community";
 import LandingPage from "./components/LandingPage";
+import IntroOverlay from "./components/IntroOverlay";
 import Navbar from "./components/NavBar";
 import FeaturesPage from "./components/FeaturesPage";
 import SafetyPage from "./components/SafetyPage";
@@ -195,6 +196,7 @@ function App() {
       <SidebarProvider>
         <NotificationListener uid={uid} />
         <DocumentTitleManager />
+        <IntroOverlay />
         <Routes>
           <Route
             path="/"

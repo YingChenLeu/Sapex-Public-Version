@@ -7,9 +7,8 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
-    /* Shadecn UI */
+    /* Shadcn UI */
 
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"

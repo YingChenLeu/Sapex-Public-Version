@@ -11,6 +11,52 @@
       content="Sapex Connect is a student collaboration platform with study rooms and peer academic help. Join your school community to ask questions, learn together, and support each other."
     />
     <meta name="google-site-verification" content="OBo4IwwfHA5Zs-WGbnt0ctLNGZISCCCeWO8Vep37pCI" />
+    <script>
+      (function () {
+        var path = location.pathname;
+        if (path !== "/" && path !== "") return;
+        document.documentElement.classList.add("sapex-intro-pending");
+        window.__SAPEX_INTRO_PLAYED_ON_LOAD = true;
+        var preload = document.createElement("link");
+        preload.rel = "preload";
+        preload.as = "video";
+        preload.href = "/sapex-animation-copy.mp4";
+        preload.type = "video/mp4";
+        document.head.appendChild(preload);
+      })();
+    </script>
+    <style>
+      html.sapex-intro-pending,
+      html.sapex-intro-pending body {
+        overflow: hidden;
+      }
+      #sapex-intro {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        width: 100vw;
+        height: 100dvh;
+        align-items: center;
+        justify-content: center;
+        background: #0a0d17;
+        opacity: 1;
+        transition: opacity 500ms ease;
+      }
+      html.sapex-intro-pending #sapex-intro {
+        display: flex;
+      }
+      #sapex-intro.is-fading {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #sapex-intro video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+      }
+    </style>
   </head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-SFXF7DT4WE"></script>
@@ -22,7 +68,87 @@
     gtag('config', 'G-SFXF7DT4WE');
   </script>
   <body>
+    <div id="sapex-intro" aria-hidden="true">
+      <video
+        id="sapex-intro-video"
+        muted
+        playsinline
+        preload="auto"
+        disablepictureinpicture
+      ></video>
+    </div>
     <div id="root"></div>
+    <script>
+      (function () {
+        var overlay = document.getElementById("sapex-intro");
+        var video = document.getElementById("sapex-intro-video");
+        if (!overlay || !video) return;
+
+        if (!document.documentElement.classList.contains("sapex-intro-pending")) {
+          overlay.remove();
+          return;
+        }
+
+        var finishing = false;
+        var videoDone = false;
+        var appReady = false;
+
+        function finish() {
+          if (finishing || !videoDone || !appReady) return;
+          finishing = true;
+          overlay.classList.add("is-fading");
+          document.documentElement.classList.remove("sapex-intro-pending");
+          window.setTimeout(function () {
+            overlay.remove();
+          }, 500);
+        }
+
+        function markVideoDone() {
+          videoDone = true;
+          finish();
+        }
+
+        function markAppReady() {
+          appReady = true;
+          finish();
+        }
+
+        video.defaultPlaybackRate = 1;
+        video.playbackRate = 1;
+        video.src = "/sapex-animation-copy.mp4";
+        video.addEventListener("ended", markVideoDone);
+        video.addEventListener("error", markVideoDone);
+        video.addEventListener("loadedmetadata", function () {
+          video.defaultPlaybackRate = 1;
+          video.playbackRate = 1;
+          var durationMs = Number.isFinite(video.duration)
+            ? video.duration * 1000 + 2000
+            : 20000;
+          window.setTimeout(markVideoDone, durationMs);
+        });
+
+        var root = document.getElementById("root");
+        if (root && root.childElementCount > 0) {
+          markAppReady();
+        } else if (root) {
+          var observer = new MutationObserver(function () {
+            if (root.childElementCount > 0) {
+              observer.disconnect();
+              markAppReady();
+            }
+          });
+          observer.observe(root, { childList: true });
+          window.setTimeout(markAppReady, 15000);
+        } else {
+          markAppReady();
+        }
+
+        var playAttempt = video.play();
+        if (playAttempt && playAttempt.catch) {
+          playAttempt.catch(markVideoDone);
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
