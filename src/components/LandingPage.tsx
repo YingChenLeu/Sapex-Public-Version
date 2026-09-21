@@ -306,7 +306,7 @@ function LandingPage() {
         id="about"
         className="relative flex min-h-[58vh] items-center overflow-hidden border-t border-rule py-24"
       >
-        <MemoriesBento tone="vignette" className="z-0" />
+        <MemoriesBento className="z-0" />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 sm:px-8">
           <motion.div
             className="ruled max-w-3xl bg-board/75 py-10 pr-6 backdrop-blur-md"
