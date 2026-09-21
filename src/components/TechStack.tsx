@@ -18,7 +18,7 @@ const codeBlockStyle = {
   padding: "1rem 1.25rem",
   borderRadius: "0.75rem",
   border: "1px solid rgba(255,255,255,0.1)",
-  background: "#0d1117",
+  background: "#171C24",
   fontSize: "0.8125rem",
   lineHeight: 1.6,
   minHeight: "100%",
@@ -31,7 +31,7 @@ const CodeBlock = ({
   children: string;
   language: string;
 }) => (
-  <div className="rounded-xl overflow-hidden border border-white/10 bg-[#0d1117] [&>pre]:!m-0 [&>pre]:!rounded-xl [&>pre]:!p-4 [&>pre]:!sm:p-5 [&>pre]:!text-left [&>pre]:!min-h-0">
+  <div className="rounded-xl overflow-hidden border border-white/10 bg-[#171C24] [&>pre]:!m-0 [&>pre]:!rounded-xl [&>pre]:!p-4 [&>pre]:!sm:p-5 [&>pre]:!text-left [&>pre]:!min-h-0">
     <SyntaxHighlighter
       language={language}
       style={oneDark}
@@ -172,7 +172,7 @@ save_weights()  # Firestore model_meta/evolved_weights`,
 
 export default function TechStack() {
   return (
-    <div className="min-h-screen bg-[#0A0D17] text-[#D8DEDE] pt-24 pb-20">
+    <div className="min-h-screen bg-transparent text-[#F0F2F2] pt-24 pb-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Hero */}
         <motion.header
@@ -194,14 +194,14 @@ export default function TechStack() {
           <motion.h1
             variants={fadeIn}
             transition={{ duration: 0.4 }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#D8DEDE] to-[#A8D3CC] bg-clip-text text-transparent mb-4"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#F0F2F2] to-[#A8D3CC] bg-clip-text text-transparent mb-4"
           >
             How Sapex is built
           </motion.h1>
           <motion.p
             variants={fadeIn}
             transition={{ duration: 0.4 }}
-            className="text-lg text-[#D8DEDE]/80 max-w-2xl mx-auto"
+            className="text-lg text-[#F0F2F2]/80 max-w-2xl mx-auto"
           >
             Real code from the repo—auth, ML matching, and deployment—wired
             for security and scale.
@@ -222,7 +222,7 @@ export default function TechStack() {
                 },
                 hidden: {},
               }}
-              className="rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0C111C]/80 overflow-hidden shadow-xl shadow-black/20"
+              className="rounded-2xl sm:rounded-3xl border border-white/10 bg-[#1E2430]/80 overflow-hidden shadow-xl shadow-black/20"
             >
               <div className="flex flex-col lg:flex-row lg:items-stretch">
                 {/* Logo + title block — no box, larger logo */}
@@ -241,14 +241,14 @@ export default function TechStack() {
                   <motion.h2
                     variants={fadeIn}
                     transition={{ duration: 0.35 }}
-                    className="text-xl font-semibold text-[#D8DEDE] mb-1"
+                    className="text-xl font-semibold text-[#F0F2F2] mb-1"
                   >
                     {section.name}
                   </motion.h2>
                   <motion.p
                     variants={fadeIn}
                     transition={{ duration: 0.35 }}
-                    className="text-sm text-[#D8DEDE]/70 text-center"
+                    className="text-sm text-[#F0F2F2]/70 text-center"
                   >
                     {section.tagline}
                   </motion.p>
@@ -272,14 +272,14 @@ export default function TechStack() {
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.4 }}
         >
-          <div className="rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0C111C]/80 overflow-hidden shadow-xl shadow-black/20 p-6 sm:p-8">
-            <h3 className="text-lg font-semibold text-[#D8DEDE] mb-2">
+          <div className="rounded-2xl sm:rounded-3xl border border-white/10 bg-[#1E2430]/80 overflow-hidden shadow-xl shadow-black/20 p-6 sm:p-8">
+            <h3 className="text-lg font-semibold text-[#F0F2F2] mb-2">
               API documentation
             </h3>
-            <p className="text-sm text-[#D8DEDE]/70 mb-4">
+            <p className="text-sm text-[#F0F2F2]/70 mb-4">
               FastAPI Swagger UI — match, coldstart_match, evolve_weights, train_ga_weights
             </p>
-            <div className="rounded-xl overflow-hidden border border-white/10 bg-[#0d1117]">
+            <div className="rounded-xl overflow-hidden border border-white/10 bg-[#171C24]">
               <img
                 src={apiDocumentationImg}
                 alt="FastAPI OpenAPI documentation showing GET /match, GET /coldstart_match, GET /evolve_weights, POST /train_ga_weights"
@@ -297,7 +297,7 @@ export default function TechStack() {
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
         >
-          <p className="text-sm text-[#D8DEDE]/60">
+          <p className="text-sm text-[#F0F2F2]/60">
             Frontend on Vercel · ML API on Render · Data & auth on Firebase
           </p>
         </motion.div>

@@ -29,17 +29,19 @@ type Problem = {
   user: {
     name: string;
     avatar?: string;
-    color?: string | null;
     uid?: string;
   };
   responses: number;
   likes: number;
 };
 
-const urgencyColors: Record<Problem["urgency"], string> = {
-  low: "bg-blue-500",
-  medium: "bg-yellow-500",
-  high: "bg-red-500",
+const urgencyVariant: Record<
+  Problem["urgency"],
+  "sage" | "community" | "danger"
+> = {
+  low: "sage",
+  medium: "community",
+  high: "danger",
 };
 
 interface HelpBoardCardProps {
@@ -56,7 +58,7 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
       if (!problem?.id) return;
       const messagesRef = collection(db, "problems", problem.id, "messages");
       const snapshot = await getDocs(messagesRef);
-      setMessageCount(snapshot.size); // snapshot.size = number of docs
+      setMessageCount(snapshot.size);
     };
 
     fetchMessageCount();
@@ -73,43 +75,33 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
         boxShadow:
           "0 18px 45px -24px rgba(0,0,0,0.9), 0 0 0 1px rgba(124,220,189,0.08)",
       }}
-      className="relative"
+      className="relative h-full"
     >
       <Card
-        className="h-full flex flex-col w-auto cursor-pointer bg-[#101320] border border-[#1b1f30] hover:border-[#7CDCBD]/50 transition-colors duration-200 rounded-2xl overflow-hidden"
+        interactive
+        className="flex h-full cursor-pointer flex-col overflow-hidden"
         onClick={() => onHelpClick(problem)}
       >
-        {/* Header */}
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-start mb-3 gap-2">
-            <div className="flex flex-col gap-1 min-w-0">
-              <Badge className="w-fit bg-[#181c2c] text-xs font-medium text-slate-200/90 border border-slate-600/40">
-                {problem.course}
-              </Badge>
-              <span className="text-[11px] uppercase tracking-[0.12em] text-slate-500">
-                {problem.category}
-              </span>
+          <div className="mb-3 flex items-start justify-between gap-2">
+            <div className="flex min-w-0 flex-col gap-1">
+              <Badge>{problem.course}</Badge>
+              <span className="marginalia">{problem.category}</span>
             </div>
-            <Badge
-              className={`px-2 py-1 rounded-full text-[11px] font-semibold border-0 ${urgencyColors[problem.urgency]} bg-opacity-20`}
-            >
-              {problem.urgency.charAt(0).toUpperCase() +
-                problem.urgency.slice(1)}{" "}
-              urgency
+            <Badge variant={urgencyVariant[problem.urgency]}>
+              {problem.urgency} urgency
             </Badge>
           </div>
-          <CardTitle className="text-base sm:text-lg text-white line-clamp-2 leading-snug">
+          <CardTitle className="line-clamp-2 text-[15px] sm:text-base">
             {problem.title}
           </CardTitle>
         </CardHeader>
 
-        {/* Content */}
         <CardContent className="flex-grow overflow-hidden">
-          <p className="text-muted-foreground text-sm max-h-24 overflow-y-auto pr-1 custom-scrollbar leading-relaxed">
+          <p className="custom-scrollbar max-h-24 overflow-y-auto pr-1 text-sm leading-relaxed text-chalk-2">
             {problem.description}
           </p>
 
-          {/* Image Popup Dialog */}
           {problem.image && (
             <div className="mt-3">
               <DisplayImage
@@ -121,12 +113,10 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
           )}
         </CardContent>
 
-        {/* Footer */}
-        <CardFooter className="flex flex-col border-t border-discord-border pt-4 gap-4">
-          <div className="flex items-center justify-between w-full">
-            {/* User info */}
-            <div className="flex items-center gap-2 min-w-0">
-              <Avatar className="h-7 w-7 ring-2 ring-[#7CDCBD]/40 ring-offset-2 ring-offset-[#0c0f1a]">
+        <CardFooter className="flex flex-col gap-4 border-t border-rule pt-4">
+          <div className="flex w-full items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <Avatar className="h-7 w-7">
                 {problem.user?.avatar ? (
                   <AvatarImage
                     src={problem.user.avatar}
@@ -137,35 +127,29 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
                     }}
                   />
                 ) : (
-                  <AvatarFallback
-                    className="text-white text-xs"
-                    style={{
-                      backgroundColor: problem.user?.color || "#2a3142",
-                    }}
-                  >
+                  <AvatarFallback>
                     {problem.user?.name?.charAt(0) || "?"}
                   </AvatarFallback>
                 )}
               </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm text-slate-100 truncate">
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-sm text-chalk">
                   {problem.user.name}
                 </span>
-                <span className="text-[11px] text-slate-500">
+                <span className="numeric text-[11px] text-chalk-3">
                   {problem.createdAt
-                    ? formatDistanceToNow(problem.createdAt, {
-                        addSuffix: true,
-                      })
+                    ? formatDistanceToNow(problem.createdAt, { addSuffix: true })
                     : "Just now"}
                 </span>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-3 text-[11px] text-chalk-3">
               <div className="flex items-center gap-1">
-                <MessageCircle size={14} className="text-[#7CDCBD]" />
-                <span className="font-medium">{messageCount}</span>
+                <MessageCircle size={14} className="text-sage" />
+                <span className="numeric font-medium text-chalk-2">
+                  {messageCount}
+                </span>
               </div>
               {problem.image ? (
                 <button
@@ -173,17 +157,17 @@ export const HelpBoardCard = ({ problem, onHelpClick }: HelpBoardCardProps) => {
                     e.stopPropagation();
                     setIsImageDialogOpen(true);
                   }}
-                  className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5 hover:border-[#7CDCBD]/40 hover:bg-white/10 transition-colors"
+                  className="group inline-flex items-center gap-2 rounded-control border border-rule bg-recess px-2 py-1 hover:border-rule-strong"
                   title="View attachment"
                 >
                   <motion.span
-                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#0A0D17]/60 border border-white/10"
+                    className="inline-flex size-6 items-center justify-center rounded-control border border-rule bg-notice"
                     whileHover={{ rotate: -8, scale: 1.04 }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
                   >
-                    <Paperclip size={14} className="text-[#D8DEDE]/90" />
+                    <Paperclip size={13} className="text-chalk-2" />
                   </motion.span>
-                  <span className="font-medium text-[#D8DEDE]/85 group-hover:text-white">
+                  <span className="font-medium text-chalk-2 group-hover:text-chalk">
                     Attachment
                   </span>
                 </button>

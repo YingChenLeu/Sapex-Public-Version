@@ -1,56 +1,482 @@
-
 @import "tailwindcss";
+@import "tw-animate-css";
 
+/* ==========================================================================
+   Sapex design language — "the ruled page"
+   --------------------------------------------------------------------------
+   Sapex is a peer-support and academic-help platform run by teenagers for
+   teenagers at their own school. Its core noun is already a board: every
+   feature is something a student posts. So the page is built like the ruled
+   paper they write on — one vertical rule, a margin for provenance and
+   navigation, content hanging off the rule.
 
+   Two rules that constrain the palette:
+   - The canvas (#0A0D17) is load-bearing. index.html's intro splash paints it
+     and every WebGL scene (MetaBalls, SoftAurora, FloatingLines, Threads)
+     composites against it.
+   - #A8D3CC and #2D4F53 are baked into those scenes, so the palette is built
+     to live with them rather than fight them.
+   ========================================================================== */
 
-/* Remove default margin/padding from root */
+:root {
+  /* --- Ground ---------------------------------------------------------- */
+  /* Three surfaces, each with a job, rather than an undifferentiated ladder. */
+  --board: #0a0d17; /* the canvas itself */
+  --notice: #12161f; /* something posted onto the board */
+  --recess: #070a11; /* a well cut into it: inputs, code, scroll areas */
+  --overlay: #161b26; /* floats above everything: dialogs, menus */
+
+  /* --- Ink ------------------------------------------------------------- */
+  /* Warm, paper-coloured type on a cold board. The warmth in this design
+     comes from the ink, not from gradient washes. */
+  --chalk: #f0ebe1;
+  --chalk-2: #bdb8ad;
+  /* Raised from #7e7a72, which fell under 4.5:1 against the board at the
+     small sizes marginalia is set in. */
+  --chalk-3: #969084;
+
+  /* --- Rules ----------------------------------------------------------- */
+  /* Cool, so they recede against the warm type. */
+  --rule: #1c2230;
+  --rule-strong: #2a3242;
+
+  /* --- Hues ------------------------------------------------------------ */
+  --sage: #a8d3cc; /* protected scene hue, promoted to links + focus */
+  --deep: #2d4f53; /* protected scene hue, used for structural fills */
+  --brass: #d9a441; /* the human/peer/community register */
+  --signal: #7cdcbd; /* live only: online, in session, unread */
+  --clay: #d06a5b; /* failure, warmed so it sits with brass */
+
+  --sage-wash: rgb(168 211 204 / 0.1);
+  --brass-wash: rgb(217 164 65 / 0.12);
+  --signal-wash: rgb(124 220 189 / 0.12);
+  --clay-wash: rgb(208 106 91 / 0.12);
+
+  /* Quarantined: these belong to the FeatureShowcase demo interiors and
+     should not leak into product chrome. */
+  --demo-violet: #a78bfa;
+  --demo-blue: #60a5fa;
+
+  /* --- Radius by object type ------------------------------------------- */
+  /* A posted notice is nearly square like paper; a control is softer; a
+     floating overlay is softer still. Radius encodes what a thing is. */
+  --radius-notice: 2px;
+  --radius-control: 6px;
+  --radius-overlay: 10px;
+
+  /* --- shadcn contract ------------------------------------------------- */
+  --background: var(--board);
+  --foreground: var(--chalk);
+  --card: var(--notice);
+  --card-foreground: var(--chalk);
+  --popover: var(--overlay);
+  --popover-foreground: var(--chalk);
+  /* The primary action is a paper notice pinned to a dark board. */
+  --primary: var(--chalk);
+  --primary-foreground: var(--board);
+  --secondary: var(--notice);
+  --secondary-foreground: var(--chalk);
+  --muted: var(--notice);
+  --muted-foreground: var(--chalk-2);
+  --accent: var(--overlay);
+  --accent-foreground: var(--chalk);
+  --destructive: var(--clay);
+  --destructive-foreground: #ffffff;
+  --border: var(--rule);
+  --input: var(--recess);
+  --ring: var(--sage);
+
+  --chart-1: var(--sage);
+  --chart-2: var(--brass);
+  --chart-3: var(--signal);
+  --chart-4: var(--demo-blue);
+  --chart-5: var(--demo-violet);
+
+  --radius: var(--radius-control);
+
+  /* --- App shell geometry ---------------------------------------------- */
+  --sidebar-w: 228px;
+  --sidebar-w-collapsed: 72px;
+  --app-gutter: var(--sidebar-w-collapsed);
+
+  /* The margin column of the ruled page. */
+  --margin-w: 8.5rem;
+
+  --ease-app: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Ground */
+  --color-board: var(--board);
+  --color-notice: var(--notice);
+  --color-recess: var(--recess);
+  --color-overlay: var(--overlay);
+
+  /* Ink */
+  --color-chalk: var(--chalk);
+  --color-chalk-2: var(--chalk-2);
+  --color-chalk-3: var(--chalk-3);
+
+  /* Rules */
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+
+  /* Hues */
+  --color-sage: var(--sage);
+  --color-deep: var(--deep);
+  --color-brass: var(--brass);
+  --color-signal: var(--signal);
+  --color-clay: var(--clay);
+  --color-sage-wash: var(--sage-wash);
+  --color-brass-wash: var(--brass-wash);
+  --color-signal-wash: var(--signal-wash);
+  --color-clay-wash: var(--clay-wash);
+  --color-demo-violet: var(--demo-violet);
+  --color-demo-blue: var(--demo-blue);
+
+  --radius-notice: var(--radius-notice);
+  --radius-control: var(--radius-control);
+  --radius-overlay: var(--radius-overlay);
+
+  /* Type carries the "built by students who code" register. Space Grotesk is a
+     geometric grotesque with enough eccentricity (the g, the single-storey a)
+     to be recognisable at display size; IBM Plex was drawn as an engineering
+     institution's face and holds up at UI sizes; Plex Mono handles the
+     structural marginalia and any real data. */
+  --font-sans:
+    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-display:
+    "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-logo: "Syncopate", "Space Grotesk", sans-serif;
+
+  --ease-app: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
 #root {
-  max-width: 100%;
   width: 100%;
-  height: 100vh;
+  max-width: 100%;
+  min-height: 100vh;
   margin: 0;
+  position: relative;
+  isolation: isolate;
+}
 
+html {
+  scroll-behavior: smooth;
 }
 
 html,
 body {
-  background-color: #0A0D17; /* or use Tailwind class if applying in JSX */
-  color: #D8DEDE; /* optional */
+  background-color: var(--board);
+  color: var(--chalk);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  /* Keeps single-word last lines out of body copy. */
+  text-wrap: pretty;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+@layer base {
+  * {
+    border-color: var(--rule);
+  }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  /* Headings are the display grotesque. It needs negative tracking that grows
+     with size — geometric faces open up noticeably at display scale. */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+
+  /* Figures line up in tables and stats without resorting to a mono face. */
+  table,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--sage);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: rgb(168 211 204 / 0.3);
+    color: var(--chalk);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--chalk-3);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+  }
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(60, 53, 53, 0.3);
-  border-radius: 8px;
-  transition: background-color 0.3s ease;
-}
-
-.custom-scrollbar:hover::-webkit-scrollbar {
-  opacity: 1;
-}
-
+/* Retained only as the logotype. Syncopate is too wide to set running
+   headings in, which is what it was previously doing on every page. */
 @font-face {
   font-family: "Syncopate";
   src: url("/Syncopate-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
 
 @layer utilities {
+  .font-logo {
+    font-family: var(--font-logo);
+  }
+
+  /* Back-compat: a few screens still reference this. Points at the logotype
+     family so nothing breaks while screens are migrated. */
   .font-syncopate {
-    font-family: "Syncopate", sans-serif;
+    font-family: var(--font-logo);
+  }
+
+  /* --- The ruled page --------------------------------------------------- */
+  /* One vertical rule, a margin to its left, content to its right. The rule
+     persists on mobile — it is the signature of the layout, not an
+     embellishment that drops at the first breakpoint. */
+  .ruled {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 0;
+  }
+
+  .ruled-margin {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    letter-spacing: 0.005em;
+    color: var(--chalk-3);
+    padding-bottom: 0.75rem;
+  }
+
+  .ruled-body {
+    border-left: 1px solid var(--rule);
+    padding-left: 1.25rem;
+    min-width: 0;
+  }
+
+  @media (min-width: 768px) {
+    .ruled {
+      grid-template-columns: var(--margin-w) minmax(0, 1fr);
+    }
+
+    .ruled-margin {
+      padding-bottom: 0;
+      padding-right: 1.5rem;
+      text-align: right;
+    }
+
+    .ruled-body {
+      padding-left: 2.5rem;
+    }
+  }
+
+  /* --- Measure ---------------------------------------------------------- */
+  .measure {
+    max-width: 62ch;
+  }
+
+  .measure-tight {
+    max-width: 46ch;
+  }
+
+  /* --- Type scale ------------------------------------------------------- */
+  /* Sizes and line-heights are unchanged from the previous scale so the page
+     rhythm holds; only the family, weight and tracking move. */
+  /* Sized down from the serif's 4.25rem. Space Grotesk sets much wider, and
+     the hero's headline column is only ~480px: above 3.25rem the headline
+     broke to four uneven lines with a stranded first word. The face's larger
+     x-height keeps it reading as display type at this size. */
+  .display-1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.125rem, 4.4vw, 3.25rem);
+    font-weight: 500;
+    line-height: 1.06;
+    letter-spacing: -0.038em;
+  }
+
+  .display-2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.875rem, 3.6vw, 2.625rem);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+  }
+
+  .display-3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.022em;
+  }
+
+  /* Marginalia stays lowercase rather than becoming a tracked-out capital
+     eyebrow. In the technical register that means mono, not serif italic —
+     a filename/annotation voice instead of a literary one. */
+  .marginalia {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    letter-spacing: 0.005em;
+    color: var(--chalk-3);
+  }
+
+  /* Real figures — counts, ratings, timestamps — line up on the mono grid. */
+  .numeric {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "zero" 1;
+  }
+
+  /* --- Paper texture ---------------------------------------------------- */
+  .grain {
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+  }
+
+  /* --- Landing type ----------------------------------------------------- */
+  .landing {
+    --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--font-sans);
+  }
+
+  /* Chance-me score slider. Keeps the reading-room register instead of
+     a native OS control. */
+  .chance-scale {
+    appearance: none;
+    height: 2px;
+    width: 100%;
+    background: var(--rule-strong);
+    border-radius: 999px;
+    outline: none;
+  }
+
+  .chance-scale::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--chalk);
+    border: 2px solid var(--board);
+    box-shadow: 0 0 0 1px var(--brass);
+    cursor: pointer;
+  }
+
+  .chance-scale::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--chalk);
+    border: 2px solid var(--board);
+    box-shadow: 0 0 0 1px var(--brass);
+    cursor: pointer;
+  }
+
+  /* --- App shell -------------------------------------------------------- */
+  .app-gutter {
+    padding-left: var(--app-gutter);
+    transition: padding-left 400ms var(--ease-app);
+  }
+
+  /* --- Scrollbar -------------------------------------------------------- */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--rule-strong);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 
+  .app-gutter {
+    transition: none;
+  }
+
+  /* Landing keeps its orchestrated hero; the rest of the app respects
+     reduced motion so signed-in screens stay still. */
+  body:not(:has(.landing)) *,
+  body:not(:has(.landing)) *::before,
+  body:not(:has(.landing)) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

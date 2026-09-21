@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSidebar } from "./SideBar";
+import { AppPage, PageHeader } from "@/components/ui/app-shell";
 import {
   Handshake,
   HeartCrack,
@@ -18,7 +18,6 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { incrementUsage } from "@/lib/stats";
 import { Card, CardContent } from "./ui/card";
-import { containsSevereProfanity } from "@/lib/profanity";
 
 const iconClass = "size-5 text-neutral-300";
 
@@ -61,7 +60,6 @@ const SUPPORT_OPTIONS = [
 ] as const;
 
 const WellnessSupport = () => {
-  const { collapsed } = useSidebar();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
@@ -82,13 +80,9 @@ const WellnessSupport = () => {
         actual: null,
         type: type,
       });
-      const systemText = "Conversation started.";
-      if (containsSevereProfanity(systemText)) {
-        throw new Error("Profanity blocked in system message.");
-      }
       await addDoc(collection(db, "esupport", docRef.id, "messages"), {
         from: "system",
-        text: systemText,
+        text: "Conversation started.",
         timestamp: new Date(),
       });
       await incrementUsage(db, "wellnessSupportUsed");
@@ -100,32 +94,18 @@ const WellnessSupport = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen bg-[#0A0D17] pt-8 pb-20 ${
-        collapsed ? "pl-[74px] sm:pl-[96px]" : "pl-[220px] xl:pl-[280px]"
-      } transition-all duration-300`}
-    >
-      {/* Background */}
+    <AppPage width="narrow">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Threads amplitude={2} distance={0} enableMouseInteraction={false} />
       </div>
 
-      <div className="relative z-10 mr-auto max-w-3xl pl-8 pr-6 flex flex-col items-start gap-10">
-        {/* Hero */}
-        <motion.header
-          className="space-y-3 text-left"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-        >
-          <h1 className="text-3xl font-bold text-white font-syncopate tracking-tight">
-            Wellness Support
-          </h1>
-          <p className="text-muted-foreground mt-1 max-w-md">
-            Choose a topic and we’ll match you with someone who can listen and
-            support.
-          </p>
-        </motion.header>
+      <div className="relative z-10 flex flex-col items-start gap-10">
+        <PageHeader
+          margin="wellness"
+          title="Wellness Support"
+          description="Choose a topic and we’ll match you with someone who can listen."
+          className="mb-0 w-full"
+        />
 
         {/* Notice card */}
         <motion.div
@@ -133,17 +113,15 @@ const WellnessSupport = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08, ease: [0.4, 0, 0.2, 1] }}
         >
-          <Card className="w-full border-amber-500/30 bg-amber-950/20 backdrop-blur-sm shadow-lg">
-            <CardContent className="p-4 flex items-start gap-3">
-              <Info className="size-5 text-amber-400 shrink-0 mt-0.5" />
-              <div className="text-sm text-amber-100/90">
-                <span className="font-medium text-amber-200">
-                  Before you start:
-                </span>{" "}
-                Please complete the{" "}
+          <Card className="w-full border-brass/30 bg-brass-wash">
+            <CardContent className="flex items-start gap-3 p-4">
+              <Info className="mt-0.5 size-5 shrink-0 text-brass" />
+              <div className="text-sm text-chalk-2">
+                <span className="font-medium text-chalk">Before you start:</span>{" "}
+                Complete the{" "}
                 <a
                   href="/user-profile"
-                  className="underline text-amber-300 hover:text-amber-200 font-medium"
+                  className="font-medium text-sage underline underline-offset-2 hover:text-chalk"
                 >
                   personality test on your profile
                 </a>{" "}
@@ -160,11 +138,9 @@ const WellnessSupport = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.16, ease: [0.4, 0, 0.2, 1] }}
         >
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            Choose a topic
-          </p>
+          <p className="text-sm font-medium text-chalk-2">Choose a topic</p>
           <motion.div
-            className="w-full flex justify-start rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md px-6 py-5 shadow-xl"
+            className="flex w-full justify-start border border-rule bg-notice/70 px-6 py-5 backdrop-blur-md"
             whileHover={{ borderColor: "rgba(255,255,255,0.15)" }}
             transition={{ duration: 0.2 }}
           >
@@ -180,7 +156,7 @@ const WellnessSupport = () => {
           <AnimatePresence mode="wait">
             {isSubmitting && (
               <motion.div
-                className="flex items-center gap-2 text-gray-400 text-sm"
+                className="flex items-center gap-2 text-sm text-chalk-2"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -195,7 +171,7 @@ const WellnessSupport = () => {
 
         {/* Data disclaimer */}
         <motion.footer
-          className="w-full pt-4 border-t border-white/10"
+          className="w-full border-t border-rule pt-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.24, ease: [0.4, 0, 0.2, 1] }}
@@ -203,14 +179,14 @@ const WellnessSupport = () => {
           <button
             type="button"
             onClick={() => setShowDisclaimer(!showDisclaimer)}
-            className="text-sm text-gray-500 hover:text-gray-400 underline underline-offset-2 transition-colors"
+            className="text-sm text-chalk-3 underline underline-offset-2 transition-colors hover:text-chalk-2"
           >
             Data & privacy disclaimer
           </button>
           <AnimatePresence>
             {showDisclaimer && (
               <motion.p
-                className="mt-2 text-sm text-gray-400"
+                className="mt-2 text-sm text-chalk-2"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -222,7 +198,7 @@ const WellnessSupport = () => {
           </AnimatePresence>
         </motion.footer>
       </div>
-    </div>
+    </AppPage>
   );
 };
 

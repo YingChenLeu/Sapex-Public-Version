@@ -29,13 +29,8 @@ import {
   type CourseCategory,
   type Course,
 } from "@/components/ui/courseData";
-import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
-
-const fieldClass =
-  "bg-[#0d1019] border-white/10 text-white placeholder:text-gray-500 rounded-xl focus-visible:ring-2 focus-visible:ring-[#7cdcbd]/35 focus-visible:border-[#7cdcbd]/25";
-
-const selectContentClass =
-  "bg-[#11141d] text-white border border-white/10 rounded-xl shadow-xl z-50";
+import { AppPage, PageHeader } from "@/components/ui/app-shell";
+import { InlineError } from "@/components/ui/states";
 
 const PostProblem = () => {
   const navigate = useNavigate();
@@ -80,8 +75,7 @@ const PostProblem = () => {
     if (user?.uid) {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
-        const data = userDoc.data();
-        avatar = resolveUserAvatarUrl(data) || "";
+        avatar = userDoc.data().profilePicture || "";
       }
     }
 
@@ -112,66 +106,56 @@ const PostProblem = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0D17] text-white pb-20">
-      <div className="mx-auto max-w-2xl px-4 pt-8 sm:px-6 sm:pt-10">
-        <Button
-          type="button"
-          variant="ghost"
-          className="mb-8 -ml-2 gap-2 text-gray-400 hover:text-white hover:bg-white/5"
-          onClick={() => navigate(-1)}
-          disabled={isSubmitting}
-        >
-          <ArrowLeft size={18} />
-          Back
-        </Button>
+    <AppPage width="narrow">
+      <Button
+        type="button"
+        variant="ghost"
+        className="mb-6 -ml-2"
+        onClick={() => navigate(-1)}
+        disabled={isSubmitting}
+      >
+        <ArrowLeft size={18} />
+        Back
+      </Button>
 
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold font-syncopate tracking-tight text-white sm:text-4xl">
-            Post a Problem
-          </h1>
-          <p className="mt-2 text-muted-foreground text-sm sm:text-base max-w-lg">
-            Share what you’re stuck on — peers in Academic Center can jump in
-            and help.
-          </p>
-        </header>
+      <PageHeader
+        margin="academic center"
+        title="Post a problem"
+        description="Share what you’re stuck on. People in your school can jump in."
+        className="mb-8"
+      />
 
-        <div className="rounded-2xl border border-white/[0.08] bg-[#11141d]/90 p-6 sm:p-8 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.55)]">
-          <div className="space-y-6">
-          {/* Title */}
+      <div className="border border-rule bg-notice p-6 sm:p-8">
+        <div className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-sm text-gray-300">
-              Title
-            </Label>
+            <Label htmlFor="title">Title</Label>
             <Input
               id="title"
               placeholder="What's your problem about?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isSubmitting}
-              className={fieldClass}
             />
           </div>
 
           {/* Category and Course */}
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
             <div className="space-y-2">
-              <Label htmlFor="category" className="text-sm text-gray-300">
-                Category
-              </Label>
+              <Label htmlFor="category">Category</Label>
               <Select
                 value={selectedCategory}
                 onValueChange={handleCategoryChange}
                 disabled={isSubmitting}
               >
-                <SelectTrigger id="category" className={fieldClass}>
+                <SelectTrigger id="category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent className={selectContentClass}>
+                <SelectContent>
                   {Object.keys(courseGroups).map((category) => (
                     <SelectItem
                       key={category}
                       value={category}
-                      className="cursor-pointer focus:bg-white/10 focus:text-white"
+                      className="cursor-pointer"
                     >
                       {category}
                     </SelectItem>
@@ -181,15 +165,13 @@ const PostProblem = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="course" className="text-sm text-gray-300">
-                Course
-              </Label>
+              <Label htmlFor="course">Course</Label>
               <Select
                 value={selectedCourse}
                 onValueChange={handleCourseChange}
                 disabled={!selectedCategory || isSubmitting}
               >
-                <SelectTrigger id="course" className={fieldClass}>
+                <SelectTrigger id="course">
                   <SelectValue
                     placeholder={
                       selectedCategory
@@ -198,13 +180,13 @@ const PostProblem = () => {
                     }
                   />
                 </SelectTrigger>
-                <SelectContent className={selectContentClass}>
+                <SelectContent>
                   {selectedCategory &&
                     courseGroups[selectedCategory].map((course) => (
                       <SelectItem
                         key={course}
                         value={course}
-                        className="cursor-pointer focus:bg-white/10 focus:text-white"
+                        className="cursor-pointer"
                       >
                         {course}
                       </SelectItem>
@@ -216,33 +198,31 @@ const PostProblem = () => {
 
           {/* Urgency */}
           <div className="space-y-2">
-            <Label htmlFor="urgency" className="text-sm text-gray-300">
-              Urgency
-            </Label>
+            <Label htmlFor="urgency">Urgency</Label>
             <Select
               value={urgency}
               onValueChange={setUrgency}
               disabled={isSubmitting}
             >
-              <SelectTrigger id="urgency" className={fieldClass}>
+              <SelectTrigger id="urgency">
                 <SelectValue placeholder="Select urgency" />
               </SelectTrigger>
-              <SelectContent className={selectContentClass}>
+              <SelectContent>
                 <SelectItem
                   value="low"
-                  className="cursor-pointer focus:bg-white/10 focus:text-white"
+                  className="cursor-pointer"
                 >
                   Low
                 </SelectItem>
                 <SelectItem
                   value="medium"
-                  className="cursor-pointer focus:bg-white/10 focus:text-white"
+                  className="cursor-pointer"
                 >
                   Medium
                 </SelectItem>
                 <SelectItem
                   value="high"
-                  className="cursor-pointer focus:bg-white/10 focus:text-white"
+                  className="cursor-pointer"
                 >
                   High
                 </SelectItem>
@@ -252,23 +232,21 @@ const PostProblem = () => {
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm text-gray-300">
-              Description
-            </Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               placeholder="Describe your problem in detail..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={isSubmitting}
-              className={`min-h-[200px] ${fieldClass} resize-y`}
+              className="min-h-[200px]"
             />
           </div>
 
           {/* Image Upload */}
           <div className="space-y-2">
-            <Label className="text-sm text-gray-300">Image (optional)</Label>
-            <div className="rounded-xl border border-dashed border-white/15 bg-[#0d1019]/80 overflow-hidden">
+            <Label>Image (optional)</Label>
+            <div className="overflow-hidden border border-dashed border-rule-strong bg-recess">
             <FileUpload
               onChange={async (files) => {
                 if (!files?.length) return;
@@ -307,16 +285,14 @@ const PostProblem = () => {
             />
             </div>
             {isUploading && (
-              <p className="text-sm text-gray-400 flex items-center gap-2">
+              <p className="flex items-center gap-2 text-sm text-chalk-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 Uploading image…
               </p>
             )}
-            {uploadError && (
-              <p className="text-sm text-red-400/95">{uploadError}</p>
-            )}
+            {uploadError && <InlineError>{uploadError}</InlineError>}
             {selectedImage && (
-              <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-xl border border-white/10">
+              <div className="relative mt-3 aspect-video w-full overflow-hidden border border-rule">
                 <img
                   src={selectedImage}
                   alt="Uploaded"
@@ -327,13 +303,12 @@ const PostProblem = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col-reverse gap-3 border-t border-white/[0.06] pt-6 sm:flex-row sm:justify-end sm:gap-3">
+          <div className="flex flex-col-reverse gap-3 border-t border-rule pt-6 sm:flex-row sm:justify-end sm:gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate(-1)}
               disabled={isSubmitting}
-              className="rounded-xl border-white/15 bg-transparent text-gray-300 hover:bg-white/5 hover:text-white"
             >
               Cancel
             </Button>
@@ -341,22 +316,14 @@ const PostProblem = () => {
               type="button"
               onClick={handlePostProblem}
               disabled={isSubmitting || isUploading}
-              className="group inline-flex items-center justify-center rounded-xl bg-[#7CDCBD] px-6 font-semibold text-[#0A0D17] shadow-[0_0_24px_-8px_rgba(124,220,189,0.45)] transition hover:bg-[#5FBFAA] disabled:opacity-60"
+              loading={isSubmitting}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Posting…
-                </>
-              ) : (
-                "Post problem"
-              )}
+              {isSubmitting ? "Posting…" : "Post problem"}
             </Button>
-          </div>
           </div>
         </div>
       </div>
-    </div>
+    </AppPage>
   );
 };
 

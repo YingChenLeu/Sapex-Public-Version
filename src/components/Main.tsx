@@ -1,12 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  BookOpenText,
-  Eclipse,
-  Codesandbox,
-  Video,
-  GraduationCap,
-} from "lucide-react";
+import { BookOpenText, Eclipse, Codesandbox, Video, GraduationCap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSidebar } from "./SideBar";
 
@@ -27,7 +21,7 @@ const orbitalItems = [
     label: "Rate Your Chance",
     shortLabel: "Chance",
     icon: GraduationCap,
-    color: "#FBBF24",
+    color: "#D9A441",
     angle: 72,
   },
   {
@@ -35,7 +29,7 @@ const orbitalItems = [
     label: "Study Rooms",
     shortLabel: "Study",
     icon: Video,
-    color: "#60A5FA",
+    color: "#A8D3CC",
     angle: 144,
   },
   {
@@ -43,7 +37,7 @@ const orbitalItems = [
     label: "Wellness Support",
     shortLabel: "Wellness",
     icon: Eclipse,
-    color: "#A78BFA",
+    color: "#A8D3CC",
     angle: 216,
   },
   {
@@ -75,18 +69,14 @@ const Main = () => {
   const orbitIconSize = isCompactLayout ? 24 : 32;
 
   return (
-    <div
-      className={`relative min-h-screen overflow-hidden transition-all duration-300 ${
-        collapsed ? "pl-[74px] sm:pl-[92px]" : "pl-[220px] xl:pl-[280px]"
-      }`}
-    >
+    <div className="app-gutter relative min-h-screen overflow-hidden">
       {/* Ambient glow with subtle pulse */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse 80% 50% at 50% 40%, rgba(120, 220, 189, 0.18), transparent 55%),
-            radial-gradient(ellipse 60% 40% at 50% 55%, rgba(95, 191, 170, 0.12), transparent 50%)
+            radial-gradient(ellipse 36% 32% at 100% 0%, rgba(255, 255, 255, 0.16), rgba(120, 220, 189, 0.14) 48%, transparent 72%),
+            radial-gradient(ellipse 40% 36% at 100% 100%, rgba(168, 211, 204, 0.16), transparent 68%)
           `,
         }}
         animate={{ opacity: [0.85, 1, 0.85] }}
@@ -103,11 +93,10 @@ const Main = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
         >
-          <h1 className="text-3xl font-bold text-white font-syncopate tracking-tight">
-            Sapex Control Center
-          </h1>
-          <p className="mt-2 text-muted-foreground max-w-xl text-sm">
-            Your central access point. Choose a destination to orbit into.
+          <p className="marginalia mb-2">control center</p>
+          <h1 className="display-3 text-chalk">Sapex Control Center</h1>
+          <p className="measure mt-2 text-sm text-chalk-2">
+            Pick a place to go. The rest of the school is already there.
           </p>
         </motion.header>
 
@@ -162,7 +151,7 @@ const Main = () => {
 
             {/* Outer ring (counter-rotate) */}
             <motion.div
-              className="absolute rounded-full border border-[#7CDCBD]/15"
+              className="absolute rounded-full border border-signal/15"
               style={{
                 width: orbitRadius * 2 + 28,
                 height: orbitRadius * 2 + 28,
@@ -229,7 +218,7 @@ const Main = () => {
                       >
                         <Link to={item.to} className="block w-full h-full">
                           <motion.div
-                            className="rounded-2xl bg-[#12162A]/95 border-2 flex flex-col items-center justify-center gap-1.5 cursor-pointer overflow-hidden backdrop-blur-sm"
+                            className="flex cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-notice border-2 bg-notice/95 backdrop-blur-sm"
                             style={{
                               width: orbitCardSize,
                               height: orbitCardSize,
@@ -249,7 +238,7 @@ const Main = () => {
                               style={{ color: item.color, width: orbitIconSize, height: orbitIconSize }}
                             />
                             <span
-                              className={`font-medium text-white/90 truncate px-1 ${isCompactLayout ? "text-[9px] max-w-[64px]" : "text-[10px] max-w-[72px]"}`}
+                              className={`truncate px-1 font-medium text-chalk ${isCompactLayout ? "max-w-[64px] text-[9px]" : "max-w-[72px] text-[10px]"}`}
                             >
                               {collapsed ? item.shortLabel : item.label}
                             </span>

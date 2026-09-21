@@ -17,7 +17,7 @@ import MockCursor from "./MockCursor";
 import TypedInput from "./TypedInput";
 import { useSceneLoop } from "./useSceneLoop";
 
-const ACCENT = "#7CDCBD";
+const ACCENT = "#d9a441";
 
 const chips = ["Anonymous", "Peer verdicts", "Actionable comments"] as const;
 

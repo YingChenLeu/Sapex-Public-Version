@@ -12,7 +12,7 @@ import {
 import { MessageSquare, Clock, Users, Eye } from "lucide-react";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useSidebar } from "./SideBar";
+import { AppPage, PageHeader } from "@/components/ui/app-shell";
 
 interface ChatSession {
   id: string;
@@ -29,7 +29,6 @@ const AdminManagement = () => {
   const [showMessages, setShowMessages] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
-  const { collapsed } = useSidebar();
 
   const handleViewMessages = async (chatId: string) => {
     try {
@@ -112,18 +111,12 @@ const AdminManagement = () => {
   const totalChats = chatSessions.length;
 
   return (
-    <div
-      className={`min-h-screen bg-gray-50 p-6 ${
-        collapsed ? "pl-[74px] sm:pl-[96px]" : "pl-[220px] xl:pl-[280px]"
-      } transition-all duration-300`}
-    >
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-600">Manage and monitor all chat sessions</p>
-        </div>
+    <AppPage width="wide">
+      <PageHeader
+        margin="admin"
+        title="Admin"
+        description="Monitor wellness chat sessions."
+      />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -135,10 +128,10 @@ const AdminManagement = () => {
               <MessageSquare className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-signal">
                 {activeChatCount}
               </div>
-              <p className="text-xs text-gray-800">Currently ongoing</p>
+              <p className="text-xs text-chalk-3">Currently ongoing</p>
             </CardContent>
           </Card>
 
@@ -147,13 +140,13 @@ const AdminManagement = () => {
               <CardTitle className="text-sm font-medium">
                 Pending Chats
               </CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <Clock className="h-4 w-4 text-brass" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-2xl font-bold text-brass">
                 {pendingChatCount}
               </div>
-              <p className="text-xs text-gray-800">Waiting for response</p>
+              <p className="text-xs text-chalk-3">Waiting for response</p>
             </CardContent>
           </Card>
 
@@ -162,13 +155,13 @@ const AdminManagement = () => {
               <CardTitle className="text-sm font-medium">
                 Total Sessions
               </CardTitle>
-              <Users className="h-4 w-4 text-blue-600" />
+              <Users className="h-4 w-4 text-sage" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-sage">
                 {totalChats}
               </div>
-              <p className="text-xs text-gray-800">All time</p>
+              <p className="text-xs text-chalk-3">All time</p>
             </CardContent>
           </Card>
         </div>
@@ -199,36 +192,36 @@ const AdminManagement = () => {
                     <TableCell className="font-mono text-sm">
                       {chat.id}
                     </TableCell>
-                    <TableCell className="text-gray-900">
+                    <TableCell>
                       {chat.seekerName}
                     </TableCell>
-                    <TableCell className="text-gray-900">
+                    <TableCell>
                       {chat.helperName}
                     </TableCell>
-                    <TableCell className="max-w-xs truncate text-gray-900">
+                    <TableCell className="max-w-xs truncate">
                       {chat.userIssue}
                     </TableCell>
                     <TableCell>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`rounded-notice px-2 py-1 text-xs font-medium ${
                           chat.status === "Open"
-                            ? "text-green-600 bg-green-50"
-                            : "text-gray-600 bg-gray-50"
+                            ? "bg-signal-wash text-signal"
+                            : "bg-notice text-chalk-2"
                         }`}
                       >
                         {chat.status}
                       </span>
                     </TableCell>
-                    <TableCell className="text-gray-900">
+                    <TableCell>
                       {chat.messageCount}
                     </TableCell>
                     <TableCell>
                       <button
                         onClick={() => handleViewMessages(chat.id)}
-                        className="p-1 rounded hover:bg-gray-200"
+                        className="rounded-control p-1 hover:bg-notice"
                         title="View Messages"
                       >
-                        <Eye className="h-4 w-4 text-gray-700" />
+                        <Eye className="h-4 w-4 text-chalk-2" />
                       </button>
                     </TableCell>
                   </TableRow>
@@ -239,37 +232,36 @@ const AdminManagement = () => {
         </Card>
 
         {showMessages && (
-          <div className="mt-8 bg-white p-4 rounded shadow-md border border-gray-200">
-            <h2 className="text-lg font-semibold mb-2">
+          <div className="mt-8 border border-rule bg-notice p-4">
+            <h2 className="mb-2 text-lg font-semibold text-chalk">
               Messages for Chat ID: {selectedChatId}
             </h2>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="custom-scrollbar max-h-64 space-y-2 overflow-y-auto">
               {selectedMessages.map((msg, idx) => (
-                <div key={idx} className="text-sm border-b pb-2">
+                <div key={idx} className="border-b border-rule pb-2 text-sm">
                   <p>
-                    <span className="font-medium">
+                    <span className="font-medium text-chalk">
                       {msg.user?.name || "Unknown"}
                     </span>{" "}
                     at{" "}
-                    <span className="text-gray-500">
+                    <span className="numeric text-chalk-3">
                       {new Date(msg.createdAt?.seconds * 1000).toLocaleString()}
                     </span>
                     :
                   </p>
-                  <p className="text-gray-800">{msg.content}</p>
+                  <p className="text-chalk-2">{msg.content}</p>
                 </div>
               ))}
             </div>
             <button
               onClick={() => setShowMessages(false)}
-              className="mt-4 text-blue-600 hover:underline text-sm"
+              className="mt-4 text-sm text-sage underline-offset-4 hover:underline"
             >
               Close
             </button>
           </div>
         )}
-      </div>
-    </div>
+    </AppPage>
   );
 };
 

@@ -39,6 +39,7 @@ import { OriginsLab } from "./components/OriginsLab";
 import RateYourChance from "./components/RateYourChance";
 import RateYourChanceNew from "./components/RateYourChanceNew";
 import RateYourChanceDetail from "./components/RateYourChanceDetail";
+import Contributions from "./components/Contribution";
 import { useLocation } from "react-router-dom";
 
 const APP_NAME = "Sapex";
@@ -201,8 +202,9 @@ function App() {
           <Route
             path="/"
             element={
-              <div>
-                <Navbar /> <LandingPage />
+              <div className="landing">
+                <Navbar />
+                <LandingPage />
               </div>
             }
           />
@@ -217,10 +219,10 @@ function App() {
           <Route
             path="/main"
             element={
-              <div className="relative min-h-screen overflow-hidden bg-[#0A0D17]">
-                <div className="pointer-events-none absolute inset-0 z-0 opacity-35 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),rgba(0,0,0,0.4),transparent)]">
+              <div className="relative min-h-screen overflow-hidden bg-transparent">
+                <div className="pointer-events-none absolute inset-0 z-0 opacity-60 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),rgba(0,0,0,0.4),transparent)]">
                   <FloatingLines
-                    linesGradient={["#45f56e", "#A8D3CC", "#2D4F53"]}
+                    linesGradient={["#9effb8", "#E8F8F4", "#A8D3CC"]}
                     interactive={false}
                     bendStrength={-15}
                     parallax={false}
@@ -334,7 +336,14 @@ function App() {
           />
           <Route
             path="/contributions"
-            element={<Navigate to="/user-profile" replace />}
+            element={
+              <ProtectedRoute>
+                <div>
+                  <Contributions />
+                  <SideBar />
+                </div>
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/choose-username"
@@ -409,7 +418,10 @@ function App() {
             path="/rate-your-chance/new"
             element={
               <ProtectedRoute>
-                <RateYourChanceNew />
+                <div>
+                  <SideBar />
+                  <RateYourChanceNew />
+                </div>
               </ProtectedRoute>
             }
           />

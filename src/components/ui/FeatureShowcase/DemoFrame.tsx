@@ -5,15 +5,9 @@ interface DemoFrameProps {
   badge?: string;
   accent?: string;
   children: ReactNode;
-  /** Height of the inner content area in pixels. */
   contentHeight?: number;
 }
 
-/**
- * Decorative, non-interactive container for showcasing feature animations.
- * Renders a small "device-like" window chrome around its children.
- * Children are absolutely positioned and fill the inner content area.
- */
 const DemoFrame = ({
   badge = "Sapex",
   accent = "#A8D3CC",
@@ -22,10 +16,9 @@ const DemoFrame = ({
 }: DemoFrameProps) => {
   return (
     <div
-      className="relative w-full max-w-[360px] mx-auto select-none pointer-events-none"
+      className="relative mx-auto w-full max-w-[360px] select-none pointer-events-none"
       aria-hidden
     >
-      {/* Soft accent glow behind the frame */}
       <motion.div
         className="absolute -inset-8 rounded-[40px] blur-2xl"
         style={{
@@ -35,22 +28,21 @@ const DemoFrame = ({
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative rounded-[28px] border border-white/10 bg-[#0C111C]/95 shadow-2xl shadow-black/40 overflow-hidden backdrop-blur-sm">
-        {/* Window chrome */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10 bg-white/[0.025]">
-          <div className="flex items-center gap-2 min-w-0">
+      <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#1E2430]/95 shadow-2xl shadow-black/40 backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.025] px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-2">
             <span
-              className="w-2 h-2 rounded-full shrink-0"
+              className="h-2 w-2 shrink-0 rounded-full"
               style={{ background: accent, boxShadow: `0 0 8px ${accent}` }}
             />
-            <span className="text-[10px] uppercase tracking-[0.18em] text-[#D8DEDE]/70 font-syncopate truncate">
+            <span className="truncate font-syncopate text-[10px] uppercase tracking-[0.18em] text-[#F0F2F2]/70">
               {badge}
             </span>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
-            <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
-            <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+          <div className="flex shrink-0 items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+            <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+            <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
           </div>
         </div>
 

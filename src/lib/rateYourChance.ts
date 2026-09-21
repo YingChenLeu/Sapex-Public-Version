@@ -151,31 +151,31 @@ export type RYCVerdict = "reach" | "target" | "likely" | "safety";
 
 export const VERDICT_META: Record<
   RYCVerdict,
-  { label: string; description: string; color: string; ring: string }
+  { label: string; description: string; color: string; wash: string }
 > = {
   reach: {
     label: "Reach",
-    description: "Long shot — under typical admit thresholds.",
-    color: "#F87171",
-    ring: "ring-red-400/40",
+    description: "A long shot against typical admit ranges.",
+    color: "#d06a5b",
+    wash: "rgb(208 106 91 / 0.12)",
   },
   target: {
     label: "Target",
-    description: "Within range, but no guarantee.",
-    color: "#FBBF24",
-    ring: "ring-amber-300/40",
+    description: "In range. Still not a sure thing.",
+    color: "#d9a441",
+    wash: "rgb(217 164 65 / 0.12)",
   },
   likely: {
     label: "Likely",
-    description: "Stronger profile than typical admit.",
-    color: "#7CDCBD",
-    ring: "ring-emerald-300/40",
+    description: "Stronger than a typical admit on paper.",
+    color: "#a8d3cc",
+    wash: "rgb(168 211 204 / 0.1)",
   },
   safety: {
     label: "Safety",
-    description: "Very strong odds based on stats alone.",
-    color: "#60A5FA",
-    ring: "ring-sky-300/40",
+    description: "Stats sit comfortably above the bar.",
+    color: "#7cdcbd",
+    wash: "rgb(124 220 189 / 0.12)",
   },
 };
 

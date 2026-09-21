@@ -1,13 +1,4 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  CheckCircle2,
-  GraduationCap,
-  HeartPulse,
-  MessagesSquare,
-  Users,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AcademicHubDemo,
@@ -18,121 +9,85 @@ import {
 
 const FEATURES = [
   {
-    title: "Academic Center",
-    copy: "Ask questions and solve together in real time.",
-    Icon: MessagesSquare,
+    margin: "academic center",
+    title: "Ask a question. Get an answer tonight.",
+    copy: "Peers in your year pick up the problem — math notation, files, and a live thread.",
     Demo: AcademicHubDemo,
   },
   {
-    title: "Rate Your Chance",
-    copy: "Anonymous college profile reviews with ratings and comments.",
-    Icon: GraduationCap,
+    margin: "rate your chance",
+    title: "An anonymous reading room.",
+    copy: "Post a college snapshot. Readers stamp Reach, Target, Likely, or Safety and leave a note.",
     Demo: RateYourChanceDemo,
   },
   {
-    title: "Wellness Chat",
-    copy: "Private peer support with calm conversation flows.",
-    Icon: HeartPulse,
+    margin: "wellness",
+    title: "A matched peer when it gets heavy.",
+    copy: "Private chats with a student helper whose temperament fits what you’re going through.",
     Demo: WellnessDemo,
   },
   {
-    title: "Study Rooms",
-    copy: "Join focused sessions with your classmates.",
-    Icon: Users,
+    margin: "study rooms",
+    title: "Work alongside people.",
+    copy: "Open a room around a subject or project and stay accountable.",
     Demo: StudyRoomsDemo,
   },
 ] as const;
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-[#0A0D17] text-[#D8DEDE] pt-28 pb-16">
-      <section className="px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="mx-auto max-w-6xl"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <p className="text-[#A8D3CC] text-sm font-medium tracking-wider uppercase">
-            Features
-          </p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mt-3">
-            Everything inside the Sapex app
-          </h1>
-          <p className="text-[#D8DEDE]/78 mt-3 max-w-2xl">
-            Free public access for students. Need a private school version? Message us.
-          </p>
-        </motion.div>
-      </section>
-
-      <section className="px-4 sm:px-6 lg:px-8 mt-10">
-        <div className="mx-auto max-w-6xl space-y-8">
-          {FEATURES.map(({ title, copy, Icon, Demo }, i) => (
-            <motion.div
-              key={title}
-              className={`grid grid-cols-1 lg:grid-cols-2 gap-5 rounded-2xl border border-white/10 bg-[#0C111C]/90 p-4 ${
-                i % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""
-              }`}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
-            >
-              <div className="flex flex-col justify-center px-2">
-                <div className="w-10 h-10 rounded-lg bg-[#A8D3CC]/15 flex items-center justify-center mb-3">
-                  <Icon className="w-5 h-5 text-[#A8D3CC]" />
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white">{title}</h2>
-                <p className="text-[#D8DEDE]/78 mt-2">{copy}</p>
-                <div className="mt-4 inline-flex items-center gap-2 text-sm text-[#A8D3CC]">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Free in the public app
-                </div>
-              </div>
-              <motion.div
-                animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Demo />
-              </motion.div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      <section className="px-4 sm:px-6 lg:px-8 mt-12">
-        <motion.div
-          className="mx-auto max-w-6xl rounded-2xl border border-[#A8D3CC]/25 bg-[#0C111C] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.35 }}
-        >
-          <div>
-            <h3 className="text-xl sm:text-2xl font-semibold text-white">Ready to launch?</h3>
-            <p className="text-sm text-[#D8DEDE]/75 mt-1">
-              Free public use. Private school version available on request.
+    <div className="min-h-screen bg-board pt-28 pb-20 text-chalk">
+      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <header className="ruled mb-16">
+          <div className="ruled-margin">features</div>
+          <div className="ruled-body">
+            <h1 className="display-2 text-chalk">What’s inside the app</h1>
+            <p className="measure mt-4 text-sm leading-relaxed text-chalk-2">
+              Free public access. A private school community is available if
+              you ask.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              asChild
-              className="bg-[#A8D3CC] text-[#2D4F53] hover:bg-[#D8DEDE] hover:text-[#2D4F53]"
-            >
-              <Link to="/login" className="flex items-center gap-2">
-                Open Sapex
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+        </header>
+
+        <div className="space-y-16">
+          {FEATURES.map(({ margin, title, copy, Demo }) => (
+            <section key={margin} className="ruled border-t border-rule pt-10">
+              <div className="ruled-margin">{margin}</div>
+              <div className="ruled-body">
+                <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-14">
+                  <div>
+                    <h2 className="display-3 text-chalk">{title}</h2>
+                    <p className="measure mt-4 text-sm leading-relaxed text-chalk-2">
+                      {copy}
+                    </p>
+                  </div>
+                  <div className="flex justify-center lg:justify-end">
+                    <Demo />
+                  </div>
+                </div>
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <div className="mt-16 border-t border-rule pt-10">
+          <h2 className="display-3 text-chalk">Ready to open it?</h2>
+          <p className="measure mt-3 text-sm text-chalk-2">
+            Sign in and pick a space. Schools that want a closed campus can
+            email us.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-5">
+            <Button asChild>
+              <Link to="/login">Open Sapex</Link>
             </Button>
-            <a
-              href="mailto:sapex@aisct.org?subject=Sapex%20features%20question"
-              className="text-sm text-[#A8D3CC] hover:text-[#D8DEDE] transition-colors"
-            >
-              Contact us
-            </a>
+            <Button asChild variant="link" className="px-0">
+              <a href="mailto:sapex@aisct.org?subject=Sapex%20features%20question">
+                Contact us
+              </a>
+            </Button>
           </div>
-        </motion.div>
-      </section>
+        </div>
+      </div>
     </div>
   );
 }

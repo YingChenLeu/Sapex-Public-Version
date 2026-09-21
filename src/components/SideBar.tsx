@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CircleUserRound,
   Video,
+  Clock,
   Eclipse,
   LogOut,
   Hexagon,
@@ -17,6 +18,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { Button } from "@/components/ui/button";
 
 const SidebarContext = createContext<{
   collapsed: boolean;
@@ -47,13 +49,26 @@ export const SidebarProvider = ({
     }
   }, [isSmallScreen]);
 
+  // Single source of truth for the content gutter. Pages read this through the
+  // `.app-gutter` utility instead of hardcoding their own pixel offsets.
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--app-gutter",
+      collapsed
+        ? "var(--sidebar-w-collapsed)"
+        : "var(--sidebar-w)",
+    );
+  }, [collapsed]);
+
   const toggleCollapsed = () => {
     if (isSmallScreen) return;
     setCollapsed((prev) => !prev);
   };
 
   return (
-    <SidebarContext.Provider value={{ collapsed, toggleCollapsed, isSmallScreen }}>
+    <SidebarContext.Provider
+      value={{ collapsed, toggleCollapsed, isSmallScreen }}
+    >
       {children}
     </SidebarContext.Provider>
   );
@@ -68,6 +83,7 @@ export const useSidebar = () => {
 
 const navItems = [
   { to: "/user-profile", icon: CircleUserRound, label: "Profile" },
+  { to: "/contributions", icon: Clock, label: "Contributions" },
   { to: "/helpboard", icon: BookOpenText, label: "Academic Hub" },
   { to: "/rate-your-chance", icon: GraduationCap, label: "Rate Your Chance" },
   { to: "/wellness-support", icon: Eclipse, label: "Wellness" },
@@ -107,30 +123,32 @@ function SideBar() {
   return (
     <>
       <aside
-        className={`fixed top-0 left-0 z-[100] h-screen flex flex-col
-          ${isMain ? "bg-transparent" : "bg-[#0D1117]"} border-r border-white/[0.06]
-          ${collapsed ? "w-[72px] sm:w-[80px]" : "w-[220px] xl:w-[240px]"}`}
+        className={`fixed top-0 left-0 z-[100] h-screen flex flex-col border-r border-rule
+          ${isMain ? "bg-transparent" : "bg-notice/85 backdrop-blur-xl"}`}
         style={{
+          width: collapsed
+            ? "var(--sidebar-w-collapsed)"
+            : "var(--sidebar-w)",
           transition: "width 400ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         {isMain && (
           <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-            <div className="absolute inset-0 bg-[#0D1117]/70 backdrop-blur-[2px]" />
+            <div className="absolute inset-0 bg-notice/75 backdrop-blur-[2px]" />
           </div>
         )}
 
         {/* Logo */}
         <Link
           to="/main"
-          className={`flex items-center shrink-0 border-b border-white/[0.06] transition-colors duration-300 ease-out hover:bg-white/[0.03] ${
-            collapsed ? "justify-center py-4 px-0" : "gap-3 py-4 px-4"
+          className={`flex h-14 items-center shrink-0 border-b border-rule transition-colors duration-200 ease-out hover:bg-notice ${
+            collapsed ? "justify-center px-0" : "gap-2.5 px-4"
           }`}
         >
           <img
             src="/simple-logo.png"
             alt="Sapex"
-            className="h-9 w-9 shrink-0 object-contain"
+            className="h-8 w-8 shrink-0 object-contain"
           />
           <AnimatePresence initial={false} mode="wait">
             {!collapsed && (
@@ -142,7 +160,7 @@ function SideBar() {
                   duration: 0.35,
                   ease: [0.4, 0, 0.2, 1],
                 }}
-                className="font-syncopate font-semibold text-white text-sm whitespace-nowrap overflow-hidden"
+                className="font-logo font-semibold text-chalk text-[13px] tracking-wide whitespace-nowrap overflow-hidden"
               >
                 SAPEX
               </motion.span>
@@ -151,30 +169,45 @@ function SideBar() {
         </Link>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 min-h-0">
+        <nav className="custom-scrollbar flex-1 overflow-y-auto py-3 px-2 min-h-0">
+          <AnimatePresence initial={false}>
+            {!collapsed && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="px-2 pb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-chalk-3"
+              >
+                Workspace
+              </motion.p>
+            )}
+          </AnimatePresence>
           <ul className="space-y-0.5">
             {navItems.map(({ to, icon: Icon, label }) => {
               const isActive =
-                location.pathname === to ||
-                (to !== "/" && location.pathname.startsWith(`${to}/`));
+                to === "/rate-your-chance"
+                  ? location.pathname.startsWith("/rate-your-chance")
+                  : location.pathname === to;
               return (
                 <li key={to}>
                   <Link
                     to={to}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-300 ease-out
-                      ${collapsed ? "justify-center px-0" : ""}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`group relative flex h-9 items-center gap-2.5 rounded-control text-[13px] font-medium transition-colors duration-200 ease-out
+                      ${collapsed ? "justify-center px-0" : "px-2.5"}
                       ${
                         isActive
-                          ? "bg-[#7CDCBD]/10 text-[#7CDCBD]"
-                          : "text-gray-400 hover:bg-white/[0.05] hover:text-gray-200"
+                          ? "bg-sage-wash text-sage"
+                          : "text-chalk-2 hover:bg-notice hover:text-chalk"
                       }`}
                     title={collapsed ? label : undefined}
                   >
-                    <Icon
-                      className={`shrink-0 ${isActive ? "text-[#7CDCBD]" : ""}`}
-                      size={20}
-                      strokeWidth={1.8}
-                    />
+                    {/* Active rail marker reads at any width, including collapsed. */}
+                    {isActive && (
+                      <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-sage" />
+                    )}
+                    <Icon className="shrink-0" size={18} strokeWidth={1.8} />
                     <AnimatePresence initial={false} mode="wait">
                       {!collapsed && (
                         <motion.span
@@ -201,37 +234,37 @@ function SideBar() {
         {/* Collapse toggle */}
         {!isSmallScreen && (
           <div
-            className={`shrink-0 border-t border-white/[0.06] flex items-center ${
-              collapsed ? "justify-center py-3" : "justify-end pr-2 py-3"
+            className={`shrink-0 border-t border-rule flex items-center ${
+              collapsed ? "justify-center py-2.5" : "justify-end pr-2 py-2.5"
             }`}
           >
             <button
               type="button"
               onClick={toggleCollapsed}
-              className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/[0.06] transition-colors duration-300 ease-out"
+              className="flex items-center justify-center size-8 rounded-control text-chalk-3 hover:text-chalk hover:bg-notice transition-colors duration-200 ease-out"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? (
-                <ChevronRight className="w-4 h-4" strokeWidth={2} />
+                <ChevronRight className="size-4" strokeWidth={2} />
               ) : (
-                <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+                <ChevronLeft className="size-4" strokeWidth={2} />
               )}
             </button>
           </div>
         )}
 
         {/* Bottom: Admin + Logout */}
-        <div className="shrink-0 border-t border-white/[0.06] py-3 px-2 space-y-0.5">
+        <div className="shrink-0 border-t border-rule py-2.5 px-2 space-y-0.5">
           {isAdmin && (
             <button
               type="button"
               onClick={() => navigate("/admin")}
-              className={`flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-300 ease-out
-                bg-[#7CDCBD]/10 text-[#7CDCBD] hover:bg-[#7CDCBD]/15
-                ${collapsed ? "justify-center px-0" : ""}`}
+              className={`flex h-9 items-center gap-2.5 w-full rounded-control text-[13px] font-medium transition-colors duration-200 ease-out
+                bg-sage-wash text-sage hover:bg-sage/15
+                ${collapsed ? "justify-center px-0" : "px-2.5"}`}
               title={collapsed ? "Admin" : undefined}
             >
-              <Hexagon className="shrink-0 w-5 h-5" strokeWidth={1.8} />
+              <Hexagon className="shrink-0 size-[18px]" strokeWidth={1.8} />
               <AnimatePresence initial={false} mode="wait">
                 {!collapsed && (
                   <motion.span
@@ -253,12 +286,12 @@ function SideBar() {
           <button
             type="button"
             onClick={() => setShowLogoutConfirm(true)}
-            className={`flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-300 ease-out
-              text-gray-400 hover:bg-red-500/10 hover:text-red-400
-              ${collapsed ? "justify-center px-0" : ""}`}
+            className={`flex h-9 items-center gap-2.5 w-full rounded-control text-[13px] font-medium transition-colors duration-200 ease-out
+              text-chalk-2 hover:bg-clay-wash hover:text-clay
+              ${collapsed ? "justify-center px-0" : "px-2.5"}`}
             title={collapsed ? "Log out" : undefined}
           >
-            <LogOut className="shrink-0 w-5 h-5" strokeWidth={1.8} />
+            <LogOut className="shrink-0 size-[18px]" strokeWidth={1.8} />
             <AnimatePresence initial={false} mode="wait">
               {!collapsed && (
                 <motion.span
@@ -291,36 +324,42 @@ function SideBar() {
             onClick={() => setShowLogoutConfirm(false)}
           >
             <motion.div
-              className="bg-[#12162A] border border-white/10 rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
+              className="bg-overlay border border-rule-strong rounded-overlay shadow-[0_24px_64px_-16px_rgba(0,0,0,0.8)] w-full max-w-sm overflow-hidden"
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="logout-title"
             >
               <div className="p-6">
-                <p className="text-white font-medium text-center">
+                <p
+                  id="logout-title"
+                  className="text-[15px] font-semibold text-chalk text-center"
+                >
                   Log out of Sapex?
                 </p>
-                <p className="text-gray-400 text-sm text-center mt-1">
+                <p className="text-chalk-2 text-sm text-center mt-1.5">
                   You can sign back in anytime.
                 </p>
               </div>
-              <div className="flex gap-2 p-4 pt-0">
-                <button
-                  type="button"
+              <div className="flex gap-2 px-5 pb-5">
+                <Button
+                  variant="outline"
+                  className="flex-1"
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 border border-white/10 transition-colors"
                 >
                   Cancel
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
                   onClick={handleLogout}
-                  className="flex-1 py-2.5 rounded-lg text-sm font-medium text-white bg-red-600/90 hover:bg-red-600 transition-colors"
                 >
                   Log out
-                </button>
+                </Button>
               </div>
             </motion.div>
           </motion.div>

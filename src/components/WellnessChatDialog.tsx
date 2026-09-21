@@ -21,11 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Send, Smile, UserRound } from "lucide-react";
-import { useSidebar } from "./SideBar";
 import EmojiPicker, { Theme } from "emoji-picker-react";
-import { resolveUserAvatarUrl } from "@/lib/profileVisuals";
-import { containsSevereProfanity } from "@/lib/profanity";
-import { toast } from "sonner";
 // Message type for wellness chat, similar to ProblemChatDialog
 type Message = {
   id: string;
@@ -53,7 +49,6 @@ const WellnessChatDialog = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const auth = getAuth();
   const currentUser = auth.currentUser;
-  const { collapsed } = useSidebar();
 
   const [, setHelperInfo] = useState<{
     name: string;
@@ -82,10 +77,9 @@ const WellnessChatDialog = ({
       if (helperUid && currentUser?.uid !== helperUid) {
         const helperSnap = await getDoc(doc(db, "users", helperUid));
         if (helperSnap.exists()) {
-          const data = helperSnap.data();
           setHelperInfo({
-            name: data.displayName || "Supporter",
-            avatar: resolveUserAvatarUrl(data) || undefined,
+            name: helperSnap.data().displayName || "Supporter",
+            avatar: helperSnap.data().profilePicture,
           });
         }
       }
@@ -115,22 +109,16 @@ const WellnessChatDialog = ({
 
   // Send message to Firestore (esupport collection, aligned with ProblemChatDialog)
   const handleSendMessage = async () => {
-    const text = newMessage.trim();
-    if (!text || !currentUser) return;
-    if (containsSevereProfanity(text)) {
-      toast.error("Message blocked: please avoid severe profanity.");
-      return;
-    }
-    let avatar: string | null = null;
+    if (!newMessage.trim() || !currentUser) return;
+    let avatar = null;
     if (currentUser?.uid) {
       const userDoc = await getDoc(doc(db, "users", currentUser.uid));
       if (userDoc.exists()) {
-        const data = userDoc.data();
-        avatar = resolveUserAvatarUrl(data);
+        avatar = userDoc.data().profilePicture || null;
       }
     }
     await addDoc(collection(db, "esupport", sessionId, "messages"), {
-      content: text,
+      content: newMessage.trim(),
       createdAt: serverTimestamp(),
       user: {
         name: currentUser.displayName || "Anonymous",
@@ -154,9 +142,7 @@ const WellnessChatDialog = ({
 
   return (
     <div
-      className={`h-screen w-full flex flex-col ${
-        collapsed ? "pl-[80px]" : "pl-[240px]"
-      } transition-all duration-300`}
+      className="app-gutter flex h-screen w-full flex-col"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "cover",
@@ -166,13 +152,13 @@ const WellnessChatDialog = ({
         backgroundBlendMode: "overlay",
       }}
     >
-      <div className="bg-[#1e212d] border-b border-discord-border px-4 py-3 flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-rule bg-overlay/90 px-4 py-3 backdrop-blur-md">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-900 to-green-800 rounded-full flex items-center justify-center">
             <UserRound className="text-white h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-white font-medium">Sapex Emotional Support</h3>
+            <h3 className="font-medium text-chalk">Wellness support</h3>
           </div>
           {currentUser?.uid !== helperUidRef.current && (
             <Button
@@ -200,7 +186,7 @@ const WellnessChatDialog = ({
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-[#1e212d] p-6 rounded-lg shadow-lg w-[320px] text-white text-center"
+            className="bg-[#2A2E3C] p-6 rounded-lg shadow-lg w-[320px] text-white text-center"
           >
             <h3 className="text-lg font-semibold mb-2">How much better do you feel now?</h3>
             <p className="text-sm text-slate-400 mb-4">Rate on a scale of 1 to 10</p>
@@ -293,7 +279,7 @@ const WellnessChatDialog = ({
       </div>
 
       {/* Message Input */}
-      <div className="bg-[#1e212d] border-t border-discord-border p-4">
+      <div className="bg-[#2A2E3C] border-t border-discord-border p-4">
         <div className="flex items-center space-x-2">
           <Button
             variant="ghost"

@@ -1,188 +1,212 @@
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { LogIn } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LogIn, UserRound } from "lucide-react";
+import { useState } from "react";
+const isValidEmail = (email: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 import { FcGoogle } from "react-icons/fc";
-import { useEffect, useState } from "react";
 import { auth, db, provider } from "../lib/firebase";
-import { signInWithPopup } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
 import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  type DocumentData,
-  type UpdateData,
-} from "firebase/firestore";
-import { courseGroups } from "@/components/ui/courseData";
-
-const COC_ACK_KEY = "sapex:coc_ack_v1";
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { updateProfile } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
 const Auth = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showConductModal, setShowConductModal] = useState(false);
+
+  const toggleForm = () => {
+    setIsLogin(!isLogin);
+    setError("");
+    setEmail("");
+    setPassword("");
+    setName("");
+  };
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    try {
-      if (import.meta.env.DEV) {
-        setShowConductModal(true);
-        return;
-      }
-      const ack = window.localStorage.getItem(COC_ACK_KEY);
-      if (ack !== "1") setShowConductModal(true);
-    } catch {
-      setShowConductModal(true);
-    }
-  }, []);
-
-  const acknowledgeConduct = () => {
-    try {
-      window.localStorage.setItem(COC_ACK_KEY, "1");
-    } catch {
-      // ignore storage failures
-    }
-    setShowConductModal(false);
-  };
-
-  // Build a fresh user doc with NO name/surname stored. Username is intentionally
-  // left empty so the user is forced to pick one in /choose-username.
-  const createInitialUserDoc = async (
-    uid: string,
-    emailValue: string | null,
-    googlePhotoUrl: string | null,
-  ) => {
-    const normalizedEmail = (emailValue ?? "").trim().toLowerCase();
-    const contributions = Object.fromEntries(
-      Object.keys(courseGroups).map((category) => [category, 0]),
-    );
-
-    await setDoc(doc(db, "users", uid), {
-      uid,
-      username: "",
-      usernameLocked: false,
-      email: normalizedEmail || null,
-      bio: "",
-      isAdmin: false,
-      profilePicture: googlePhotoUrl || "/default-avatar.png",
-      contributions,
-      bigFivePersonality: {
-        Openness: 0,
-        Conscientiousness: 0,
-        Extraversion: 0,
-        Agreeableness: 0,
-        Neuroticism: 0,
-      },
-      online: true,
-      busy: false,
-      helper: false,
-    });
-  };
-
-  // Decide where to send the user after a successful sign-in / sign-up.
-  // If they don't have a locked username yet, force them through the
-  // username chooser; otherwise drop them on the help board.
-  const routeAfterAuth = async (
-    uid: string,
-    latestGooglePhoto?: string | null,
-  ) => {
-    localStorage.setItem("uid", uid);
-    try {
-      const snap = await getDoc(doc(db, "users", uid));
-      const data = snap.exists() ? snap.data() : null;
-      const locked = data?.usernameLocked === true;
-      const username = (data?.username || "").trim();
-
-      if (!locked || !username) {
-        navigate("/choose-username", { replace: true });
-        return;
-      }
-
-      localStorage.setItem("name", username);
-      localStorage.setItem(
-        "photo",
-        data?.profilePicture || latestGooglePhoto || "/default-avatar.png",
-      );
-      try {
-        await updateDoc(doc(db, "users", uid), { online: true });
-      } catch {
-        // non-fatal
-      }
-      navigate("/helpboard", { replace: true });
-    } catch (err) {
-      console.error("routeAfterAuth failed:", err);
-      navigate("/choose-username", { replace: true });
-    }
-  };
-
   const handleClick = async () => {
-    setLoading(true);
     try {
       setError("");
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      const googlePhotoUrl = user.photoURL || null;
 
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-        await createInitialUserDoc(user.uid, user.email, googlePhotoUrl);
-      } else {
-        const current = userSnap.data();
-        const updates: UpdateData<DocumentData> = {};
-        const normalizedEmail = (user.email ?? "").trim().toLowerCase() || null;
-        if ((current.email ?? null) !== normalizedEmail) {
-          updates.email = normalizedEmail;
+      if (user.email) {
+        const uid = user.uid;
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            uid: uid,
+            username: user.displayName?.trim() || "Anonymous",
+            email: user.email,
+            bio: "",
+            isAdmin: false,
+            profilePicture: user.photoURL || "/default-avatar.png",
+            contributions: {
+              English: 0,
+              "Social Sciences": 0,
+              "Foreign Languages": 0,
+              Mathematics: 0,
+              Science: 0,
+              Arts: 0,
+            },
+            bigFivePersonality: {
+              Openness: 0,
+              Conscientiousness: 0,
+              Extraversion: 0,
+              Agreeableness: 0,
+              Neuroticism: 0,
+            },
+            online: true,
+            busy: false,
+            helper: false,
+          });
+        } else {
+          const currentData = userSnap.data();
+          const updates: any = {};
+          if (!currentData.username || currentData.username.trim() === "") {
+            updates.username = user.displayName?.trim() || "Anonymous";
+          }
+          if (
+            !currentData.profilePicture ||
+            currentData.profilePicture.trim() === ""
+          ) {
+            updates.profilePicture = user.photoURL || "/default-avatar.png";
+          }
+          if (Object.keys(updates).length > 0) {
+            await updateDoc(userRef, updates);
+          }
         }
-        if (
-          (current.profilePicture ?? null) !==
-          (googlePhotoUrl ?? "/default-avatar.png")
-        ) {
-          updates.profilePicture = googlePhotoUrl || "/default-avatar.png";
-        }
-        if (Object.keys(updates).length > 0) {
-          await updateDoc(userRef, updates);
-        }
+
+        localStorage.setItem("uid", uid);
+        localStorage.setItem("name", user.displayName || "Anonymous");
+        localStorage.setItem("photo", user.photoURL || "/default-avatar.png");
+        navigate("/helpboard");
       }
-
-      await routeAfterAuth(user.uid, googlePhotoUrl);
     } catch (error: any) {
       console.error("Google sign-in error:", error);
-      const code = (error?.code as string | undefined) ?? "";
-      if (code === "auth/operation-not-allowed") {
-        setError(
-          "Google sign-in is disabled in Firebase Auth for this project.",
+      setError("Authentication failed. Please try again.");
+    }
+  };
+
+  const handleEmailLogin = async () => {
+    if (!email.trim() || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      setError("Invalid email format.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      setError("");
+      const result = await signInWithEmailAndPassword(
+        auth,
+        email.trim().toLowerCase(),
+        password,
+      );
+
+      localStorage.setItem("uid", result.user.uid);
+      const userDoc = await getDoc(doc(db, "users", result.user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        localStorage.setItem("name", data.username || "Anonymous");
+        localStorage.setItem(
+          "photo",
+          data.profilePicture || "/default-avatar.png",
         );
-      } else if (code === "auth/unauthorized-domain") {
-        setError(
-          "This domain is not authorized for OAuth sign-in in Firebase Auth.",
-        );
-      } else if (code === "auth/popup-blocked") {
-        setError(
-          "Popup was blocked by the browser. Please allow popups and try again.",
-        );
-      } else if (
-        code === "auth/cancelled-popup-request" ||
-        code === "auth/popup-closed-by-user"
-      ) {
-        setError("Sign-in popup was closed. Please try again.");
-      } else if (code === "auth/invalid-api-key") {
-        setError("Firebase API key is invalid for this project configuration.");
+      }
+      await updateDoc(doc(db, "users", result.user.uid), { online: true });
+      navigate("/helpboard");
+    } catch (error: any) {
+      console.error("Email login error:", error);
+      if (error.code === "auth/wrong-password") {
+        setError("Incorrect password.");
+      } else if (error.code === "auth/user-not-found") {
+        setError("No account found with this email.");
       } else {
-        setError(
-          code
-            ? `Authentication failed (${code}).`
-            : "Authentication failed. Please try again.",
-        );
+        setError("Authentication failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSignup = async () => {
+    if (!name.trim() || !email.trim() || !password) {
+      setError("Please fill out all fields.");
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      setError("Invalid email format.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email.trim().toLowerCase(),
+        password,
+      );
+      await updateProfile(result.user, {
+        displayName: name.trim(),
+      });
+      const uid = result.user.uid;
+      localStorage.setItem("uid", uid);
+      localStorage.setItem("name", name.trim() || "Anonymous");
+      localStorage.setItem("photo", "/default-avatar.png");
+
+      await setDoc(doc(db, "users", uid), {
+        uid: uid,
+        username: name.trim() || "Anonymous",
+        email: email.trim().toLowerCase(),
+        bio: "",
+        isAdmin: false,
+        profilePicture: result.user.photoURL || "/default-avatar.png",
+        contributions: {
+          English: 0,
+          "Social Sciences": 0,
+          "Foreign Languages": 0,
+          Mathematics: 0,
+          Science: 0,
+          Arts: 0,
+        },
+        bigFivePersonality: {
+          Openness: 0,
+          Conscientiousness: 0,
+          Extraversion: 0,
+          Agreeableness: 0,
+          Neuroticism: 0,
+        },
+        online: true,
+        busy: false,
+        helper: false,
+      });
+
+      navigate("/helpboard");
+    } catch (error: any) {
+      console.error("Email sign-up error:", error);
+      if (error.code === "auth/email-already-in-use") {
+        setError("An account with this email already exists.");
+      } else {
+        setError("Sign-up failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -190,100 +214,153 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0D17] flex items-start sm:items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      <Dialog
-        open={showConductModal}
-        onOpenChange={(open) => {
-          if (open) return setShowConductModal(true);
-          try {
-            const ack = window.localStorage.getItem(COC_ACK_KEY);
-            if (ack === "1") setShowConductModal(false);
-            else setShowConductModal(true);
-          } catch {
-            setShowConductModal(true);
-          }
-        }}
-      >
-        <DialogContent className="bg-[#101320] border border-[#1b1f30] text-slate-100 max-w-xl [&>button]:hidden">
-          <DialogHeader>
-            <DialogTitle className="text-white">
-              Community guidelines
-            </DialogTitle>
-            <DialogDescription className="text-slate-300">
-              To keep Sapex safe and supportive, you must follow these rules.
-              Breaking them can lead to suspension or a permanent ban.
-            </DialogDescription>
-          </DialogHeader>
+    <div className="flex min-h-screen items-center justify-center bg-transparent p-4">
+      <div className="relative w-full max-w-md overflow-hidden rounded-overlay border border-rule bg-notice/80 shadow-e3 backdrop-blur-sm md:max-w-4xl">
+        <div
+          className="absolute top-0 left-0 z-10 hidden h-full w-1/2 transition-[transform,border-radius] duration-700 ease-in-out md:block"
+          style={{
+            transform: isLogin ? "translateX(0)" : "translateX(100%)",
+            background:
+              "linear-gradient(135deg, var(--overlay) 0%, var(--notice) 50%, var(--recess) 100%)",
+            borderRadius: isLogin ? "0px 0px 250px 0px" : "200px 0px 0px 0px",
+          }}
+        />
 
-          <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-[13px] text-slate-200/90 leading-relaxed">
-            <ul className="space-y-2">
-              <li>
-                <span className="font-semibold text-slate-100">
-                  No bullying or harassment.
-                </span>{" "}
-                No hate speech, threats, doxxing, or targeted abuse.
-              </li>
-              <li>
-                <span className="font-semibold text-slate-100">
-                  Keep it appropriate.
-                </span>{" "}
-                No sexual content, exploitation, or graphic violence.
-              </li>
-              <li>
-                <span className="font-semibold text-slate-100">
-                  Protect privacy.
-                </span>{" "}
-                Don’t share personal info (yours or others’) without consent.
-              </li>
-              <li>
-                <span className="font-semibold text-slate-100">
-                  Be honest and respectful.
-                </span>{" "}
-                Don’t impersonate others or spam/scam users.
-              </li>
-            </ul>
-          </div>
-
-          <DialogFooter className="sm:justify-between gap-2">
-            <div className="text-[12px] text-slate-400 leading-snug">
-              By continuing, you agree to follow these rules while using Sapex.
-            </div>
-            <Button
-              className="bg-[#7CDCBD] text-[#0A0D17] hover:bg-[#5FBFAA] font-semibold"
-              onClick={acknowledgeConduct}
-              type="button"
-            >
-              I understand
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <div className="w-full max-w-xl bg-[#101320]/90 border border-[#1b1f30] rounded-2xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm">
-        <div className="text-slate-100 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#7CDCBD]/15 border border-[#7CDCBD]/25 mb-5">
-            <LogIn className="w-7 h-7 text-[#7CDCBD]" />
-          </div>
-          <h2 className="text-3xl font-bold text-white">
-            Continue with Google
-          </h2>
-          <p className="text-slate-400 text-sm mt-2">
-            Sapex uses your Google account for sign-in and profile photo sync.
-          </p>
-          {error && <p className="text-red-400 text-sm mt-4">{error}</p>}
-          <Button
-            className="mt-7 w-full bg-white text-[#0A0D17] hover:bg-slate-200 font-semibold gap-2"
-            onClick={handleClick}
-            disabled={loading}
-            type="button"
+        <div className="relative md:min-h-[500px]">
+          {/* Login Form */}
+          <div
+            className={`w-full px-6 pb-4 pt-10 transition-all duration-700 ease-in-out md:absolute md:top-0 md:left-0 md:px-8 md:pt-16 ${
+              isLogin
+                ? "relative z-20 translate-x-0 opacity-100"
+                : "hidden -translate-x-full opacity-0 md:block"
+            }`}
           >
-            <FcGoogle size={18} />
-            {loading ? "Connecting..." : "Continue with Google"}
-          </Button>
-          <p className="text-[12px] text-slate-500 mt-4">
-            Email/password login is not available.
-          </p>
+            <div className="mx-auto max-w-sm pt-16 text-chalk">
+              <div className="mb-8 flex items-center gap-2">
+                <LogIn className="h-7 w-7 text-sage" />
+                <h2 className="display-3 text-chalk">Login</h2>
+              </div>
+              {error && (
+                <p className="mb-4 text-sm text-clay" role="alert">
+                  {error}
+                </p>
+              )}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email-login">Email</Label>
+                  <Input
+                    id="email-login"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password-login">Password</Label>
+                  <Input
+                    id="password-login"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={handleEmailLogin}
+                  disabled={loading}
+                  loading={loading}
+                >
+                  {loading ? "Logging in…" : "Login"}
+                </Button>
+                <div className="flex items-center gap-3 pt-2">
+                  <span className="text-xs text-chalk-3">Or continue with</span>
+                  <button
+                    onClick={handleClick}
+                    type="button"
+                    className="flex items-center justify-center rounded-full border border-sage/40 bg-recess p-2.5 text-chalk transition hover:bg-sage-wash"
+                    aria-label="Sign in with Google"
+                  >
+                    <FcGoogle size={20} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sign Up Form */}
+          <div
+            className={`w-full px-6 pb-4 pt-10 transition-all duration-700 ease-in-out md:absolute md:top-0 md:left-0 md:px-8 md:pt-16 ${
+              isLogin
+                ? "hidden translate-x-full opacity-0 md:block"
+                : "relative z-20 translate-x-0 opacity-100"
+            }`}
+          >
+            <div className="mx-auto max-w-sm pt-16 text-chalk">
+              <div className="mb-8 flex items-center gap-2">
+                <UserRound className="h-7 w-7 text-sage" />
+                <h2 className="display-3 text-chalk">Sign up</h2>
+              </div>
+              {error && (
+                <p className="mb-4 text-sm text-clay" role="alert">
+                  {error}
+                </p>
+              )}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full name</Label>
+                  <Input
+                    id="name"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email-signup">Email</Label>
+                  <Input
+                    id="email-signup"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password-signup">Password</Label>
+                  <Input
+                    id="password-signup"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={handleEmailSignup}
+                  disabled={loading}
+                  loading={loading}
+                >
+                  {loading ? "Signing up…" : "Sign up"}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Switch Button */}
+        <button
+          onClick={toggleForm}
+          className="relative z-30 mx-auto mb-8 block text-center text-sm font-medium text-chalk-2 transition-colors hover:text-sage md:absolute md:bottom-8 md:left-1/2 md:mb-0 md:-translate-x-1/2"
+        >
+          {isLogin
+            ? "Need an account? Sign Up"
+            : "Already have an account? Login"}
+        </button>
       </div>
     </div>
   );

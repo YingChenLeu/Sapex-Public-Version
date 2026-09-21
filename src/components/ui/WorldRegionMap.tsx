@@ -9,7 +9,7 @@ type WorldRegionMapProps = {
   className?: string;
 };
 
-const ACCENT = "#7CDCBD";
+const ACCENT = "#d9a441";
 
 const LANDMASSES = [
   "M114 128C142 95 196 86 244 100C267 107 287 123 293 143C298 159 290 175 269 181C250 187 239 196 223 207C192 228 148 229 121 208C102 193 95 171 97 151C98 141 103 134 114 128Z",
@@ -70,9 +70,9 @@ const WorldRegionMap = ({
 
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-[28px] border border-white/10 bg-[#09101b] ${className ?? ""}`}
+      className={`relative w-full overflow-hidden rounded-notice border border-rule bg-recess ${className ?? ""}`}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(124,220,189,0.12),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(96,165,250,0.12),transparent_24%),radial-gradient(circle_at_52%_100%,rgba(167,139,250,0.12),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(217,164,65,0.08),transparent_36%)]" />
 
       <svg
         viewBox="0 0 1000 520"
@@ -305,38 +305,25 @@ const WorldRegionMap = ({
         })}
       </svg>
 
-      <div className="relative z-10 border-t border-white/10 bg-[#09101b]/85 px-4 py-3 sm:px-5">
+      <div className="relative z-10 border-t border-rule bg-notice/90 px-4 py-3 sm:px-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.24em] text-white/35">
-              Global application pools
-            </div>
-            <div className="mt-1 text-sm font-semibold text-white">
-              {activeLabel ? activeLabel.label : "Choose a region to focus the view"}
-            </div>
-            <div className="mt-1 text-[12px] leading-snug text-white/55">
+            <p className="marginalia">
+              {activeLabel ? activeLabel.short : "atlas"}
+            </p>
+            <p className="mt-1 text-sm font-medium text-chalk">
+              {activeLabel ? activeLabel.label : "Pick a region to focus the feed"}
+            </p>
+            <p className="mt-1 text-[13px] leading-snug text-chalk-3">
               {activeLabel
                 ? `${activeLabel.description}. ${activeLabel.examples}`
-                : "Hover around the map or click a region badge to lock selection."}
-            </div>
+                : "Click a pin to lock the region. Click again to clear it."}
+            </p>
           </div>
-
-          <div className="flex items-center gap-2 self-start rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 sm:self-auto">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7CDCBD]/10 text-[#7CDCBD]">
-              <span className="text-[11px] font-semibold">
-                {activeLabel ? String(counts[activeLabel.id] ?? 0) : String(maxCount)}
-              </span>
-            </div>
-            <div className="text-[11px] leading-tight text-white/65">
-              <div className="font-medium text-white/85">
-                {activeLabel ? "profiles in view" : "largest regional pool"}
-              </div>
-              <div>
-                {activeLabel
-                  ? "Click again to clear selection"
-                  : "Counts appear directly on each hotspot"}
-              </div>
-            </div>
+          <div className="numeric text-sm text-brass">
+            {activeLabel
+              ? `${counts[activeLabel.id] ?? 0} packets`
+              : `${maxCount} in the largest pool`}
           </div>
         </div>
       </div>

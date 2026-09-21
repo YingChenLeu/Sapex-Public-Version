@@ -13,7 +13,7 @@ const stagger = {
 
 function AboutInitiative() {
   return (
-    <div className="min-h-screen bg-[#0A0D17] text-[#D8DEDE] relative overflow-hidden pt-[100px]">
+    <div className="min-h-screen bg-transparent text-[#F0F2F2] relative overflow-hidden pt-[100px]">
       {/* Background: subtle gradient orbs instead of busy icons */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[#2D4F53]/15 rounded-full blur-[120px]" />
@@ -47,15 +47,15 @@ function AboutInitiative() {
             <p className="text-sm font-medium tracking-wider uppercase text-[#A8D3CC]/90 mb-3">
               Our story
             </p>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-[#D8DEDE] via-[#D8DEDE] to-[#A8D3CC] bg-clip-text text-transparent tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-[#F0F2F2] via-[#F0F2F2] to-[#A8D3CC] bg-clip-text text-transparent tracking-tight">
               Why We Started
             </h1>
-            <p className="text-lg md:text-xl text-[#D8DEDE]/85 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-[#F0F2F2]/85 leading-relaxed max-w-2xl mx-auto">
               We started Sapex because two things kept coming up: kids feeling
               alone or stressed, and students not really helping each other
               across classes and grades.
             </p>
-            <p className="mt-5 text-base text-[#D8DEDE]/75 leading-relaxed max-w-2xl mx-auto">
+            <p className="mt-5 text-base text-[#F0F2F2]/75 leading-relaxed max-w-2xl mx-auto">
               A lot of young people don’t have a safe place to talk, whether
               that’s at school or online. And when everyone stays in their own
               bubble, it’s harder to learn together. So we made a space where
@@ -72,7 +72,7 @@ function AboutInitiative() {
             transition={{ duration: 0.5 }}
           >
             <motion.div
-              className="relative bg-[#0C111C]/90 border border-white/10 rounded-2xl p-8 md:p-10 pl-10 md:pl-12 hover:border-[#A8D3CC]/20 transition-colors"
+              className="relative bg-[#1E2430]/90 border border-white/10 rounded-2xl p-8 md:p-10 pl-10 md:pl-12 hover:border-[#A8D3CC]/20 transition-colors"
             >
               <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl bg-gradient-to-b from-[#A8D3CC] to-[#2D4F53]" />
               <div className="flex items-start gap-4">
@@ -83,7 +83,7 @@ function AboutInitiative() {
                   <h2 className="text-xl md:text-2xl font-semibold text-white mb-3">
                     The Mission
                   </h2>
-                  <p className="text-[#D8DEDE]/90 leading-relaxed text-base md:text-lg">
+                  <p className="text-[#F0F2F2]/90 leading-relaxed text-base md:text-lg">
                     We want a place where talking to real people comes first.
                     So instead of dealing with stress or feeling alone, you can
                     turn to peers who get it. Students help each other with
@@ -106,7 +106,7 @@ function AboutInitiative() {
             </motion.p>
             <div className="grid md:grid-cols-2 gap-6">
               <motion.div
-                className="group relative rounded-2xl border border-white/10 bg-[#0C111C]/80 p-8 md:p-8 overflow-hidden"
+                className="group relative rounded-2xl border border-white/10 bg-[#1E2430]/80 p-8 md:p-8 overflow-hidden"
                 variants={fadeInUp}
                 transition={{ duration: 0.5 }}
                 whileHover={{ y: -6, transition: { duration: 0.2 } }}
@@ -119,7 +119,7 @@ function AboutInitiative() {
                   <h3 className="text-xl font-semibold text-white mb-3">
                     Someone to talk to
                   </h3>
-                  <p className="text-[#D8DEDE]/85 leading-relaxed text-sm md:text-base">
+                  <p className="text-[#F0F2F2]/85 leading-relaxed text-sm md:text-base">
                     Feeling alone or stressed is rough. We give you a way to
                     talk to other students about wellness and everyday stuff,
                     so you’re not on your own. You can stay anonymous if you
@@ -129,7 +129,7 @@ function AboutInitiative() {
               </motion.div>
 
               <motion.div
-                className="group relative rounded-2xl border border-white/10 bg-[#0C111C]/80 p-8 md:p-8 overflow-hidden"
+                className="group relative rounded-2xl border border-white/10 bg-[#1E2430]/80 p-8 md:p-8 overflow-hidden"
                 variants={fadeInUp}
                 transition={{ duration: 0.5 }}
                 whileHover={{ y: -6, transition: { duration: 0.2 } }}
@@ -142,7 +142,7 @@ function AboutInitiative() {
                   <h3 className="text-xl font-semibold text-white mb-3">
                     Learning together
                   </h3>
-                  <p className="text-[#D8DEDE]/85 leading-relaxed text-sm md:text-base">
+                  <p className="text-[#F0F2F2]/85 leading-relaxed text-sm md:text-base">
                     We get everyone in the same place so you can share what
                     you know and get help when you’re stuck. You ask questions,
                     others answer, and over time the whole community gets

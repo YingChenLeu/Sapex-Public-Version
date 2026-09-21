@@ -1,101 +1,69 @@
-import { motion } from "framer-motion";
-import { Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const FAQS = [
   {
-    q: "Who can join Sapex?",
+    q: "Who can join?",
     a: "Sapex is a public app and free to use.",
   },
   {
     q: "Can my school get a private version?",
-    a: "Yes. Message us if you'd like a private version for your school community.",
-  },
-  {
-    q: "Is Sapex free?",
-    a: "Yes. The public app is free to use.",
+    a: "Yes. Email us if you want a closed community for your campus.",
   },
   {
     q: "What does the app include?",
-    a: "Academic Center, Wellness Chat, and Study Rooms.",
+    a: "Academic Center, Rate Your Chance, Wellness Support, Study Rooms, and Origins Lab.",
   },
   {
     q: "Is privacy guaranteed?",
-    a: "No. Absolute privacy cannot be guaranteed, but we actively try to keep user information protected.",
+    a: "No. We try to keep accounts and chats protected, but no system is risk-free.",
   },
   {
     q: "Where is data stored?",
-    a: "Information is stored on Google infrastructure. Breaches are unlikely, but no system is risk-free.",
+    a: "On Google infrastructure. Breaches are unlikely; they are not impossible.",
   },
 ] as const;
 
 export default function FaqPage() {
   return (
-    <div className="min-h-screen bg-[#0A0D17] text-[#D8DEDE] pt-28 pb-16">
-      <section className="px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="mx-auto max-w-4xl"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <p className="text-[#A8D3CC] text-sm font-medium tracking-wider uppercase">FAQ</p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mt-3">
-            Common questions
-          </h1>
-        </motion.div>
-      </section>
+    <div className="min-h-screen bg-board pt-28 pb-20 text-chalk">
+      <div className="mx-auto max-w-4xl px-5 sm:px-8">
+        <header className="ruled mb-12">
+          <div className="ruled-margin">faq</div>
+          <div className="ruled-body">
+            <h1 className="display-2 text-chalk">Common questions</h1>
+          </div>
+        </header>
 
-      <section className="px-4 sm:px-6 lg:px-8 mt-10">
-        <div className="mx-auto max-w-4xl space-y-3">
+        <div>
           {FAQS.map((item, i) => (
-            <motion.details
+            <details
               key={item.q}
-              className="group rounded-xl border border-white/10 bg-[#0C111C] px-4 py-3"
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.35, delay: i * 0.04 }}
+              className={`group border-t border-rule py-4 ${
+                i === FAQS.length - 1 ? "border-b" : ""
+              }`}
             >
-              <summary className="cursor-pointer list-none font-medium text-white flex items-center justify-between">
+              <summary className="cursor-pointer list-none font-display text-[17px] text-chalk">
                 {item.q}
-                <span className="text-[#A8D3CC] group-open:rotate-45 transition-transform">+</span>
               </summary>
-              <p className="mt-2 text-sm text-[#D8DEDE]/78">{item.a}</p>
-            </motion.details>
+              <p className="measure mt-2 text-sm leading-relaxed text-chalk-2">
+                {item.a}
+              </p>
+            </details>
           ))}
         </div>
-      </section>
 
-      <section className="px-4 sm:px-6 lg:px-8 mt-12">
-        <motion.div
-          className="mx-auto max-w-4xl rounded-2xl border border-[#A8D3CC]/25 bg-[#0C111C] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.35 }}
-        >
-          <div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-white">Need more help?</h2>
-            <p className="text-sm text-[#D8DEDE]/75 mt-1">See terms or contact us by email.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/terms"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#A8D3CC]/40 px-4 py-2 text-sm text-[#A8D3CC] hover:text-[#D8DEDE] hover:border-[#D8DEDE]/40 transition-colors"
-            >
-              Terms
-            </Link>
-            <a
-              href="mailto:sapex@aisct.org?subject=Sapex%20FAQ%20question"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#A8D3CC]/40 px-4 py-2 text-sm text-[#A8D3CC] hover:text-[#D8DEDE] hover:border-[#D8DEDE]/40 transition-colors"
-            >
-              <Mail className="w-4 h-4" />
-              Contact us
+        <div className="mt-14 flex flex-wrap items-center gap-5">
+          <Button asChild variant="outline">
+            <Link to="/terms">Terms</Link>
+          </Button>
+          <Button asChild variant="link" className="px-0">
+            <a href="mailto:sapex@aisct.org?subject=Sapex%20FAQ%20question">
+              Email us
             </a>
-          </div>
-        </motion.div>
-      </section>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

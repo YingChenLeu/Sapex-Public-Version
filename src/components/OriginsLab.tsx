@@ -10,7 +10,6 @@ import {
   PenTool,
   Cpu,
   BookOpen,
-  Sparkles,
   ArrowLeft,
   Plus,
   Trash2,
@@ -24,7 +23,7 @@ import {
   TrendingUp,
   Stethoscope,
 } from "lucide-react";
-import { useSidebar } from "./SideBar";
+import { AppPage, PageHeader } from "@/components/ui/app-shell";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
@@ -165,7 +164,6 @@ const DEFAULT_PROMPTS = [
 ];
 
 export const OriginsLab = () => {
-  const { collapsed } = useSidebar();
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [ideas, setIdeas] = useState<string[]>([]);
   const [newIdea, setNewIdea] = useState("");
@@ -357,31 +355,14 @@ export const OriginsLab = () => {
   const ease = [0.4, 0, 0.2, 1] as const;
 
   return (
-    <div
-      className={`bg-[#0A0D17] min-h-screen pt-[30px] pb-16 transition-all duration-300 ${
-        collapsed ? "pl-[74px] sm:pl-[96px]" : "pl-[220px] xl:pl-[280px]"
-      }`}
-    >
-      <div className="px-6 md:px-10 pb-12">
-        {/* Header */}
-        <motion.header
-          className="flex items-center gap-3 mb-2"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease }}
-        >
-          <div className="w-10 h-10 rounded-xl bg-[#7CDCBD]/20 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-[#7CDCBD]" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white font-syncopate tracking-tight">
-              Origins Lab
-            </h1>
-            <p className="text-muted-foreground text-sm mt-0.5">
-              Pick a field and brainstorm project ideas
-            </p>
-          </div>
-        </motion.header>
+    <AppPage width="wide">
+      <PageHeader
+        margin="origins lab"
+        title="Origins Lab"
+        description="Pick a field and brainstorm project ideas."
+      />
+
+      <div>
 
         <AnimatePresence mode="wait">
           {!selectedField ? (
@@ -411,7 +392,7 @@ export const OriginsLab = () => {
                       key={field.id}
                       type="button"
                       onClick={() => setSelectedField(field.id)}
-                      className="rounded-2xl border-2 bg-[#12162A] p-5 text-left transition-colors hover:border-opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0A0D17]"
+                      className="rounded-2xl border-2 bg-[#1C2140] p-5 text-left transition-colors hover:border-opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#161A24]"
                       style={{
                         borderColor: `${field.color}40`,
                       }}
@@ -537,11 +518,11 @@ export const OriginsLab = () => {
                     onChange={(e) => setNewIdea(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleAddIdea()}
                     placeholder="Type an idea and press Enter or Add"
-                    className="bg-[#12162A] border-gray-700 text-white placeholder:text-gray-500 flex-1"
+                    className="bg-[#1C2140] border-gray-700 text-white placeholder:text-gray-500 flex-1"
                   />
                   <Button
                     onClick={handleAddIdea}
-                    className="bg-[#7CDCBD] text-[#0A0D17] hover:bg-[#5FBFAA] shrink-0"
+                    className="bg-[#7CDCBD] text-[#161A24] hover:bg-[#5FBFAA] shrink-0"
                   >
                     <Plus className="w-4 h-4" />
                     Add
@@ -589,7 +570,7 @@ export const OriginsLab = () => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="flex items-start gap-2 rounded-xl bg-[#12162A] border border-gray-800 p-3"
+                        className="flex items-start gap-2 rounded-xl bg-[#1C2140] border border-gray-800 p-3"
                       >
                         <span className="flex-1 text-white text-sm">
                           {idea}
@@ -611,7 +592,7 @@ export const OriginsLab = () => {
               {/* Optional: expand into full concept */}
               {ideas.length > 0 && (
                 <motion.div
-                  className="mt-8 rounded-2xl border border-white/10 bg-[#12162A]/80 p-5"
+                  className="mt-8 rounded-2xl border border-white/10 bg-[#1C2140]/80 p-5"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.05, ease }}
@@ -624,13 +605,13 @@ export const OriginsLab = () => {
                     onChange={(e) => handleExpandedIdeaChange(e.target.value)}
                     onBlur={handleExpandedIdeaBlur}
                     placeholder="Pick one idea and describe it in more detail—who it's for, what it does, why it matters..."
-                    className="min-h-[100px] bg-[#0A0D17] border-gray-700 text-white placeholder:text-gray-500 resize-none"
+                    className="min-h-[100px] bg-[#161A24] border-gray-700 text-white placeholder:text-gray-500 resize-none"
                   />
                 </motion.div>
               )}
 
               {loading && (
-                <div className="absolute inset-0 bg-[#0A0D17]/80 flex items-center justify-center rounded-2xl mt-8">
+                <div className="absolute inset-0 bg-[#161A24]/80 flex items-center justify-center rounded-2xl mt-8">
                   <Loader2 className="w-8 h-8 text-[#7CDCBD] animate-spin" />
                 </div>
               )}
@@ -662,7 +643,7 @@ export const OriginsLab = () => {
                     {everyoneSessions.map((session, index) => (
                       <motion.div
                         key={session.id}
-                        className="rounded-xl border border-white/10 bg-[#12162A] p-4"
+                        className="rounded-xl border border-white/10 bg-[#1C2140] p-4"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{
@@ -719,6 +700,6 @@ export const OriginsLab = () => {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </AppPage>
   );
 };

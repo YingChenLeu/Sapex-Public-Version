@@ -7,7 +7,7 @@ const StillInDevelopment = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#1A1F2C] text-white py-24 px-4 flex flex-col items-center justify-center space-y-8">
+    <div className="min-h-screen bg-transparent text-white py-24 px-4 flex flex-col items-center justify-center space-y-8">
       {/* Decorative header with icons */}
 
       <div className="flex items-center gap-4 mb-2">

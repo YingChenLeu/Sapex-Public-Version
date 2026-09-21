@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const Community = () => {
   return (
-    <div className="min-h-screen bg-[#0A0D17] text-[#D8DEDE] overflow-hidden">
+    <div className="min-h-screen bg-transparent text-[#F0F2F2] overflow-hidden">
       {/* Hero / header */}
       <section className="relative pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div
@@ -22,10 +22,10 @@ const Community = () => {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#A8D3CC]/20 mb-4">
             <Users className="w-6 h-6 text-[#A8D3CC]" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold font-syncopate bg-gradient-to-r from-[#D8DEDE] to-[#A8D3CC] bg-clip-text text-transparent mb-3">
+          <h1 className="text-3xl sm:text-4xl font-bold font-syncopate bg-gradient-to-r from-[#F0F2F2] to-[#A8D3CC] bg-clip-text text-transparent mb-3">
             Sapex Communities
           </h1>
-          <p className="text-[#D8DEDE]/70 max-w-xl mx-auto">
+          <p className="text-[#F0F2F2]/70 max-w-xl mx-auto">
             Schools and communities where Sapex is live.
           </p>
         </div>
@@ -35,7 +35,7 @@ const Community = () => {
       <section className="px-4 sm:px-6 lg:px-8 pb-20">
         <div className="max-w-2xl mx-auto">
           <motion.div
-            className="relative rounded-3xl border-2 border-[#A8D3CC]/30 bg-[#0C111C] overflow-hidden group hover:border-[#A8D3CC]/50 transition-colors duration-300"
+            className="relative rounded-3xl border-2 border-[#A8D3CC]/30 bg-[#1E2430] overflow-hidden group hover:border-[#A8D3CC]/50 transition-colors duration-300"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -45,7 +45,7 @@ const Community = () => {
 
             <div className="p-8 md:p-10">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#A8D3CC]/30 bg-[#0A0D17] shrink-0 shadow-lg">
+                <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#A8D3CC]/30 bg-[#161A24] shrink-0 shadow-lg">
                   <img
                     src={AISCT}
                     alt="AISCT"
@@ -62,14 +62,14 @@ const Community = () => {
                   <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
                     American International School of Cape Town
                   </h2>
-                  <p className="text-[#D8DEDE]/70 flex items-center justify-center sm:justify-start gap-1.5 text-sm">
+                  <p className="text-[#F0F2F2]/70 flex items-center justify-center sm:justify-start gap-1.5 text-sm">
                     <MapPin className="w-4 h-4 text-[#A8D3CC]/80 shrink-0" />
                     Cape Town, South Africa
                   </p>
                 </div>
               </div>
 
-              <p className="mt-6 text-[#D8DEDE]/80 leading-relaxed text-sm md:text-base">
+              <p className="mt-6 text-[#F0F2F2]/80 leading-relaxed text-sm md:text-base">
                 AISCT students can sign in with their school Google account to
                 access the Academic Hub, Wellness Support, Origins Lab, and
                 connect with peers in a safe, moderated space.
@@ -78,14 +78,14 @@ const Community = () => {
               <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center justify-center sm:justify-start gap-4">
                 <Button
                   asChild
-                  className="bg-[#A8D3CC] text-[#2D4F53] hover:bg-[#D8DEDE] hover:text-[#2D4F53]"
+                  className="bg-[#A8D3CC] text-[#2D4F53] hover:bg-[#F0F2F2] hover:text-[#2D4F53]"
                 >
                   <Link to="/login">Sign in to Sapex</Link>
                 </Button>
                 <Button
                   asChild
                   variant="outline"
-                  className="border-[#A8D3CC]/50 text-[#D8DEDE] hover:bg-[#A8D3CC]/10"
+                  className="border-[#A8D3CC]/50 text-[#F0F2F2] hover:bg-[#A8D3CC]/10"
                 >
                   <Link to="/">Back to home</Link>
                 </Button>
@@ -93,7 +93,7 @@ const Community = () => {
             </div>
           </motion.div>
 
-          <p className="text-center text-sm text-[#D8DEDE]/50 mt-8">
+          <p className="text-center text-sm text-[#F0F2F2]/50 mt-8">
             More communities coming soon.
           </p>
         </div>

@@ -120,76 +120,70 @@ const ChooseUsername = () => {
 
   if (!authReady) {
     return (
-      <div className="min-h-screen bg-[#0A0D17] flex items-center justify-center">
-        <p className="text-slate-400 text-sm">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-board">
+        <p className="text-sm text-chalk-3">Loading…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0D17] flex items-center justify-center p-4 sm:p-6">
+    <div className="flex min-h-screen items-center justify-center bg-board p-4 sm:p-6">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-md"
       >
-        <Card className="border-white/10 bg-[#101320]/90 backdrop-blur-sm">
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <UserRound className="w-7 h-7 text-[#7CDCBD]" />
-              <CardTitle className="text-2xl text-white font-syncopate">
-                Pick your username
-              </CardTitle>
+              <UserRound className="size-5 text-sage" strokeWidth={1.7} />
+              <CardTitle>Pick your username</CardTitle>
             </div>
-            <CardDescription className="text-slate-300">
+            <CardDescription>
               This is how others will see you on Sapex.
             </CardDescription>
           </CardHeader>
 
           <CardContent>
-            <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 mb-5 flex items-start gap-2">
-              <ShieldAlert className="w-4 h-4 mt-0.5 text-amber-300 shrink-0" />
-              <p className="text-[13px] text-amber-100 leading-snug">
-                <span className="font-semibold">This cannot be changed.</span>{" "}
-                Choose carefully — once set, your username is permanent.
+            <div className="mb-5 flex items-start gap-2 border border-brass/25 bg-brass-wash p-3">
+              <ShieldAlert className="mt-0.5 size-4 shrink-0 text-brass" />
+              <p className="text-[13px] leading-snug text-chalk-2">
+                This cannot be changed. Choose carefully — once set, your
+                username is permanent.
               </p>
             </div>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-slate-300">
-                  Username
-                </Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
                   autoFocus
                   autoComplete="off"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. zoro_swordsman"
-                  className="bg-[#181c27] border-[#1b1f30] text-white placeholder:text-slate-500 focus-visible:ring-[#7CDCBD]"
+                  placeholder="zoro_swordsman"
                 />
-                <p className="text-[12px] text-slate-400 leading-snug">
+                <p className="text-[12px] leading-snug text-chalk-3">
                   3–20 characters. Letters, numbers, underscores, or hyphens.
                 </p>
                 {validation.message && (
-                  <p className="text-[12px] text-amber-300/90 leading-snug">
+                  <p className="text-[12px] leading-snug text-brass">
                     {validation.message}
                   </p>
                 )}
                 {error && (
-                  <p className="text-[12px] text-red-400 leading-snug">
-                    {error}
-                  </p>
+                  <p className="text-[12px] leading-snug text-clay">{error}</p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-[#7CDCBD] text-[#0A0D17] hover:bg-[#5FBFAA] font-semibold"
+                className="w-full"
                 disabled={submitting || !validation.ok}
+                loading={submitting}
               >
-                {submitting ? "Saving..." : "Set username permanently"}
+                Set username permanently
               </Button>
             </form>
           </CardContent>

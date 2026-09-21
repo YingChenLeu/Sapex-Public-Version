@@ -113,7 +113,7 @@ const LoadingScreen = () => {
       className="min-h-screen flex items-center justify-center p-4"
       style={{
         background:
-          "linear-gradient(135deg, #0A0D17 0%, #A9D7D1 30%, #1E3D3A 60%, #12131A 85%, #18312E 100%)",
+          "linear-gradient(135deg, #A9D7D1 0%, #1E3D3A 45%, #12131A 80%, #18312E 100%)",
       }}
     >
       <div className="text-center space-y-8">

@@ -1,20 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Flag,
-  Loader2,
   Lock,
   MessageCircle,
   Send,
-  ShieldAlert,
-  Sparkles,
   Trash2,
   Users,
 } from "lucide-react";
 import { getAuth } from "firebase/auth";
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -25,19 +22,25 @@ import {
   runTransaction,
   serverTimestamp,
   updateDoc,
-  addDoc,
 } from "firebase/firestore";
+import { toast } from "sonner";
+
 import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { AppPage, PageHeader } from "@/components/ui/app-shell";
+import { EmptyState, ErrorState, LoadingState } from "@/components/ui/states";
+import {
+  ChanceScale,
+  Disclaimer,
+  SpecCell,
+  VerdictStamp,
+} from "@/components/ryc/marks";
 import {
   RYCPost,
   RYCRating,
   RYCVerdict,
-  RYC_DISCLAIMER,
   REGION_BY_ID,
   US_STATES,
   VERDICT_META,
@@ -73,7 +76,7 @@ const RateYourChanceDetail = () => {
   const [postMissing, setPostMissing] = useState(false);
 
   const [myRating, setMyRating] = useState<RYCRating | null>(null);
-  const [chance, setChance] = useState<number>(50);
+  const [chance, setChance] = useState(50);
   const [verdict, setVerdict] = useState<RYCVerdict>("target");
   const [note, setNote] = useState("");
   const [savingRating, setSavingRating] = useState(false);
@@ -181,7 +184,6 @@ const RateYourChanceDetail = () => {
   }, [id]);
 
   const isAuthor = !!currentUser && currentUser.uid === post?.authorUid;
-
   const avg = post ? averageChance(post) : null;
   const top = post ? topVerdict(post) : null;
   const stateName = post
@@ -258,11 +260,7 @@ const RateYourChanceDetail = () => {
 
   const handleRemoveRating = async () => {
     if (!post || !currentUser || !myRating) return;
-    if (
-      !window.confirm(
-        "Remove your rating? Your verdict and note will be cleared.",
-      )
-    ) {
+    if (!window.confirm("Remove your rating? The stamp and note will go with it.")) {
       return;
     }
     setSavingRating(true);
@@ -335,7 +333,7 @@ const RateYourChanceDetail = () => {
     if (!post || !isAuthor) return;
     if (
       !window.confirm(
-        "Delete this profile post? Ratings and comments will be removed.",
+        "Delete this profile? Ratings and comments will be removed.",
       )
     ) {
       return;
@@ -352,151 +350,108 @@ const RateYourChanceDetail = () => {
 
   if (postLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0D17] text-white flex items-center justify-center">
-        <Loader2 className="w-5 h-5 animate-spin text-[#7CDCBD]" />
-      </div>
+      <AppPage>
+        <LoadingState label="Opening packet…" />
+      </AppPage>
     );
   }
 
   if (postMissing || !post) {
     return (
-      <div className="min-h-screen bg-[#0A0D17] text-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10">
-          <Button
-            type="button"
-            variant="ghost"
-            className="mb-6 -ml-2 gap-2 text-gray-400 hover:text-white hover:bg-white/5"
-            onClick={() => navigate("/rate-your-chance")}
-          >
-            <ArrowLeft size={18} />
-            Back
-          </Button>
-          <div className="rounded-2xl border border-white/10 bg-[#11141d]/90 p-8 text-center">
-            <p className="text-white text-base font-medium">
-              This profile is no longer available.
-            </p>
-            <p className="text-gray-400 text-sm mt-1">
-              It may have been removed by the original poster.
-            </p>
-          </div>
-        </div>
-      </div>
+      <AppPage width="narrow">
+        <Button
+          type="button"
+          variant="ghost"
+          className="mb-6 -ml-2"
+          onClick={() => navigate("/rate-your-chance")}
+        >
+          <ArrowLeft className="size-4" />
+          All profiles
+        </Button>
+        <ErrorState
+          title="This packet is gone."
+          description="It may have been removed by the original poster."
+          onRetry={() => navigate("/rate-your-chance")}
+        />
+      </AppPage>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0D17] text-white pb-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8">
-        <Button
-          type="button"
-          variant="ghost"
-          className="mb-6 -ml-2 gap-2 text-gray-400 hover:text-white hover:bg-white/5"
-          onClick={() => navigate("/rate-your-chance")}
-        >
-          <ArrowLeft size={18} />
-          All profiles
-        </Button>
+    <AppPage width="wide">
+      <Button
+        type="button"
+        variant="ghost"
+        className="mb-6 -ml-2"
+        onClick={() => navigate("/rate-your-chance")}
+      >
+        <ArrowLeft className="size-4" />
+        All profiles
+      </Button>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-white/[0.08] bg-[#11141d]/90 p-6 sm:p-8 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.55)]"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div className="min-w-0 flex flex-col gap-2">
-              <div className="inline-flex flex-wrap items-center gap-2">
-                <Badge className="bg-[#181c2c] text-[11px] font-medium text-slate-200/90 border border-slate-600/40 uppercase tracking-wider">
-                  Anonymous
-                </Badge>
-                {regionDef && (
-                  <Badge className="bg-[#7CDCBD]/15 text-[11px] font-semibold text-[#7CDCBD] border border-[#7CDCBD]/30 uppercase tracking-wider">
-                    {regionDef.short}
-                  </Badge>
-                )}
-                {top && (
-                  <Badge
-                    className="border-0 text-[11px] font-semibold uppercase tracking-wider"
-                    style={{
-                      backgroundColor: `${VERDICT_META[top].color}22`,
-                      color: VERDICT_META[top].color,
-                    }}
-                  >
-                    Crowd: {VERDICT_META[top].label}
-                  </Badge>
-                )}
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white font-syncopate tracking-tight">
-                {post.dreamSchool}
-              </h1>
-              <p className="text-sm text-gray-400 flex items-center gap-3 flex-wrap">
-                <span className="inline-flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#7CDCBD]" />
-                  {post.intendedMajor || "Undeclared major"}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Flag className="w-3.5 h-3.5 text-[#7CDCBD]" />
-                  {regionDef?.label ?? "—"}
-                  {post.region === "north-america" &&
-                    (stateName || post.usState) && (
-                      <span className="text-gray-500">
-                        · {stateName || post.usState}
-                      </span>
-                    )}
-                </span>
-                {post.schoolType && (
-                  <span className="text-gray-500">· {post.schoolType}</span>
-                )}
-              </p>
-            </div>
+      <PageHeader
+        margin="packet"
+        title={post.dreamSchool}
+        description={
+          <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{post.intendedMajor || "Undeclared"}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Flag className="size-3.5" />
+              {regionDef?.label ?? "—"}
+              {post.region === "north-america" &&
+                (stateName || post.usState) &&
+                ` · ${stateName || post.usState}`}
+            </span>
+            {post.schoolType && <span>{post.schoolType}</span>}
+          </span>
+        }
+        actions={
+          <div className="flex items-center gap-3">
+            <VerdictStamp verdict={top} />
             {isAuthor && (
               <Button
-                variant="outline"
+                variant="destructive-ghost"
                 size="sm"
                 onClick={handleDeletePost}
-                className="self-start border-red-500/40 text-red-300 hover:bg-red-500/10 hover:text-red-200 gap-1.5"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                Delete profile
+                <Trash2 className="size-3.5" />
+                Delete
               </Button>
             )}
           </div>
+        }
+      />
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <SummaryStat
-              label="Average chance"
-              value={avg !== null ? `${avg}%` : "—"}
-            />
-            <SummaryStat
-              label="Ratings"
-              value={post.ratingsCount}
-              icon={<Users className="w-4 h-4 text-[#7CDCBD]" />}
-            />
-            <SummaryStat
-              label="Comments"
-              value={post.commentsCount}
-              icon={<MessageCircle className="w-4 h-4 text-[#7CDCBD]" />}
+      <Disclaimer className="mb-10" />
+
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <article className="min-w-0">
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div className="sm:col-span-3">
+              <ChanceScale value={avg} />
+            </div>
+            <SpecCell label="Reads" value={post.ratingsCount} />
+            <SpecCell label="Notes" value={post.commentsCount} />
+            <SpecCell
+              label="Crowd stamp"
+              value={top ? VERDICT_META[top].label : "—"}
             />
           </div>
 
           {verdictBreakdown.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="mt-8 grid grid-cols-2 gap-px bg-rule sm:grid-cols-4">
               {verdictBreakdown.map(({ verdict: v, count, pct }) => (
-                <div
-                  key={v}
-                  className="rounded-xl border border-white/10 bg-[#0A0D17]/60 px-3 py-2.5"
-                >
+                <div key={v} className="bg-board px-3 py-3">
                   <p
-                    className="text-[10px] uppercase tracking-wider font-semibold"
+                    className="text-[12px] font-medium"
                     style={{ color: VERDICT_META[v].color }}
                   >
                     {VERDICT_META[v].label}
                   </p>
-                  <p className="text-white text-base font-semibold tabular-nums mt-0.5">
-                    {count}
-                  </p>
-                  <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <p className="numeric mt-1 text-lg text-chalk">{count}</p>
+                  <div className="mt-3 h-px bg-rule-strong">
                     <div
-                      className="h-full rounded-full"
+                      className="h-px"
                       style={{
                         width: `${Math.min(100, pct)}%`,
                         backgroundColor: VERDICT_META[v].color,
@@ -508,90 +463,61 @@ const RateYourChanceDetail = () => {
             </div>
           )}
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <Stat label="GPA (UW)" value={post.gpaUnweighted ?? "—"} />
-            <Stat label="GPA (W)" value={post.gpaWeighted ?? "—"} />
-            <Stat label="SAT" value={post.satScore ?? "—"} />
-            <Stat label="ACT" value={post.actScore ?? "—"} />
-            <Stat
-              label="Class rank"
-              value={post.classRank || "—"}
-              full
-            />
-          </div>
-
-          <Block label="Course rigor" body={post.rigor} />
-          <Block
-            label="Extracurriculars"
-            body={post.extracurriculars}
-            mono
-          />
-          <Block label="Awards & honors" body={post.awards} />
-          <Block label="Spike / hook" body={post.spike} />
-          <Block label="Essays summary" body={post.essaysSummary} />
-          <Block label="Demographics & context" body={post.demographics} />
-          <Block label="Anything else" body={post.additionalContext} />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="mt-6 rounded-2xl border border-amber-400/25 bg-amber-400/5 p-3 sm:p-4 flex items-start gap-3"
-        >
-          <ShieldAlert className="w-4 h-4 mt-0.5 text-amber-300 shrink-0" />
-          <div className="text-[12px] sm:text-[13px] text-amber-100/95 leading-snug">
-            <span className="font-semibold text-amber-200">Disclaimer.</span>{" "}
-            {RYC_DISCLAIMER}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mt-6 rounded-2xl border border-white/[0.08] bg-[#11141d]/90 p-6 sm:p-8"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-[#7CDCBD]" />
-            <h2 className="text-lg sm:text-xl font-syncopate text-white">
-              Rate this profile
-            </h2>
-          </div>
-
-          {isAuthor ? (
-            <div className="rounded-xl border border-white/10 bg-[#0A0D17]/60 p-4 text-sm text-gray-400 flex items-start gap-2">
-              <Lock className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
-              You can’t rate your own profile. Wait for peers to weigh in.
+          <div className="mt-8 grid gap-5 border-t border-rule pt-6 sm:grid-cols-2">
+            <SpecCell label="GPA, unweighted" value={post.gpaUnweighted ?? "—"} />
+            <SpecCell label="GPA, weighted" value={post.gpaWeighted ?? "—"} />
+            <SpecCell label="SAT" value={post.satScore ?? "—"} />
+            <SpecCell label="ACT" value={post.actScore ?? "—"} />
+            <div className="sm:col-span-2">
+              <SpecCell label="Class rank" value={post.classRank || "—"} />
             </div>
-          ) : !currentUser ? (
-            <div className="rounded-xl border border-white/10 bg-[#0A0D17]/60 p-4 text-sm text-gray-400">
-              Sign in to rate this profile.
-            </div>
-          ) : (
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <Label className="text-gray-300">Chance of admission</Label>
-                  <span className="text-white font-semibold tabular-nums">
-                    {chance}%
-                  </span>
+          </div>
+
+          <PacketBlock label="Course rigor" body={post.rigor} />
+          <PacketBlock label="Extracurriculars" body={post.extracurriculars} mono />
+          <PacketBlock label="Awards" body={post.awards} />
+          <PacketBlock label="The hook" body={post.spike} />
+          <PacketBlock label="Essays" body={post.essaysSummary} />
+          <PacketBlock label="Context" body={post.demographics} />
+          <PacketBlock label="Anything else" body={post.additionalContext} />
+        </article>
+
+        <aside className="space-y-8 lg:sticky lg:top-8 lg:self-start">
+          <section className="border border-rule bg-notice p-5">
+            <h2 className="text-[13px] font-semibold text-chalk">Your stamp</h2>
+            <p className="mt-1 text-[13px] leading-relaxed text-chalk-2">
+              Mark the packet, then leave a short reason if you want.
+            </p>
+
+            {isAuthor ? (
+              <p className="mt-4 flex items-start gap-2 text-sm text-chalk-3">
+                <Lock className="mt-0.5 size-4 shrink-0" />
+                You can’t rate your own profile.
+              </p>
+            ) : !currentUser ? (
+              <p className="mt-4 text-sm text-chalk-3">
+                Sign in to stamp this packet.
+              </p>
+            ) : (
+              <div className="mt-5 space-y-5">
+                <div>
+                  <div className="flex items-baseline justify-between">
+                    <Label>Chance of admission</Label>
+                    <span className="numeric text-sm text-chalk">{chance}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={chance}
+                    onChange={(e) => setChance(Number(e.target.value))}
+                    className="chance-scale mt-3"
+                    disabled={savingRating}
+                  />
                 </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={chance}
-                  onChange={(e) => setChance(Number(e.target.value))}
-                  className="w-full accent-[#7CDCBD]"
-                  disabled={savingRating}
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label className="text-gray-300 text-sm">Your verdict</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {VERDICT_ORDER.map((v) => {
                     const meta = VERDICT_META[v];
                     const active = verdict === v;
@@ -601,226 +527,158 @@ const RateYourChanceDetail = () => {
                         type="button"
                         onClick={() => setVerdict(v)}
                         disabled={savingRating}
-                        className={`rounded-xl border p-3 text-left transition-all ${
-                          active
-                            ? "bg-white/[0.06]"
-                            : "bg-[#0A0D17]/60 hover:bg-white/[0.03]"
+                        className={`rounded-notice border p-2.5 text-left transition-colors ${
+                          active ? "bg-overlay" : "bg-recess hover:border-rule-strong"
                         }`}
                         style={{
-                          borderColor: active
-                            ? meta.color
-                            : "rgba(255,255,255,0.1)",
+                          borderColor: active ? meta.color : undefined,
                         }}
                       >
                         <span
-                          className="block text-[11px] uppercase tracking-wider font-semibold"
+                          className="block text-[12px] font-semibold"
                           style={{ color: meta.color }}
                         >
                           {meta.label}
                         </span>
-                        <span className="block text-[11px] text-gray-400 mt-1 leading-snug">
+                        <span className="mt-1 block text-[11px] leading-snug text-chalk-3">
                           {meta.description}
                         </span>
                       </button>
                     );
                   })}
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label className="text-gray-300 text-sm">
-                  Quick reasoning (optional)
-                </Label>
-                <Textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="What stood out, what you’d strengthen, etc."
-                  className="min-h-[80px] bg-[#0d1019] border-white/10 text-white placeholder:text-gray-500 rounded-xl focus-visible:ring-2 focus-visible:ring-[#7cdcbd]/35 focus-visible:border-[#7cdcbd]/25 resize-y"
-                  maxLength={500}
-                  disabled={savingRating}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="ryc-note">Reasoning (optional)</Label>
+                  <Textarea
+                    id="ryc-note"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="What stood out, what you’d strengthen."
+                    className="mt-1.5 min-h-[80px] resize-y"
+                    maxLength={500}
+                    disabled={savingRating}
+                  />
+                </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  onClick={handleSaveRating}
-                  disabled={savingRating}
-                  className="rounded-xl bg-[#7CDCBD] text-[#0A0D17] font-semibold hover:bg-[#5FBFAA]"
-                >
-                  {savingRating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving…
-                    </>
-                  ) : myRating ? (
-                    "Update rating"
-                  ) : (
-                    "Submit rating"
-                  )}
-                </Button>
-                {myRating && (
+                <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={handleRemoveRating}
-                    disabled={savingRating}
-                    className="rounded-xl border-red-500/40 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                    onClick={handleSaveRating}
+                    loading={savingRating}
                   >
-                    Remove my rating
+                    {myRating ? "Update stamp" : "Stamp packet"}
                   </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="mt-6 rounded-2xl border border-white/[0.08] bg-[#11141d]/90 p-6 sm:p-8"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <MessageCircle className="w-5 h-5 text-[#7CDCBD]" />
-            <h2 className="text-lg sm:text-xl font-syncopate text-white">
-              Comments
-            </h2>
-            <span className="text-xs text-gray-500">
-              {post.commentsCount} total
-            </span>
-          </div>
-
-          {currentUser ? (
-            <div className="rounded-xl border border-white/10 bg-[#0A0D17]/60 p-3 sm:p-4">
-              <Textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Share constructive thoughts. Be kind."
-                className="min-h-[72px] bg-transparent border-0 text-white placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 resize-y"
-                maxLength={1000}
-                disabled={postingComment}
-              />
-              <div className="flex items-center justify-between gap-3 mt-2 pt-2 border-t border-white/[0.06]">
-                <p className="text-[11px] text-gray-500">
-                  Posted as Anonymous.
-                </p>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleAddComment}
-                  disabled={postingComment || !newComment.trim()}
-                  className="rounded-lg bg-[#7CDCBD] text-[#0A0D17] hover:bg-[#5FBFAA] gap-1.5"
-                >
-                  {postingComment ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Send className="w-3.5 h-3.5" />
+                  {myRating && (
+                    <Button
+                      type="button"
+                      variant="destructive-ghost"
+                      onClick={handleRemoveRating}
+                      disabled={savingRating}
+                    >
+                      Remove
+                    </Button>
                   )}
-                  Comment
-                </Button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-white/10 bg-[#0A0D17]/60 p-4 text-sm text-gray-400">
-              Sign in to leave a comment.
-            </div>
-          )}
-
-          <div className="mt-4 space-y-3">
-            {comments.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-6">
-                No comments yet.
-              </p>
-            ) : (
-              comments.map((c) => {
-                const canDelete =
-                  !!currentUser &&
-                  (c.authorUid === currentUser.uid || isAuthor);
-                return (
-                  <div
-                    key={c.id}
-                    className="rounded-xl border border-white/10 bg-[#0A0D17]/60 px-3 py-2.5"
-                  >
-                    <div className="flex items-center justify-between gap-2 text-[11px] text-gray-500">
-                      <span className="uppercase tracking-wider">
-                        Anonymous
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {c.createdAt && (
-                          <span>
-                            {c.createdAt.toLocaleString(undefined, {
-                              dateStyle: "medium",
-                              timeStyle: "short",
-                            })}
-                          </span>
-                        )}
-                        {canDelete && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteComment(c)}
-                            className="rounded-md p-1 text-gray-500 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-                            title="Delete comment"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-200 mt-1 whitespace-pre-wrap break-words leading-relaxed">
-                      {c.content}
-                    </p>
-                  </div>
-                );
-              })
             )}
-          </div>
-        </motion.div>
+          </section>
+
+          <section>
+            <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-rule pb-2">
+              <h2 className="text-[13px] font-semibold text-chalk">
+                <span className="inline-flex items-center gap-1.5">
+                  <MessageCircle className="size-3.5" />
+                  Notes
+                </span>
+              </h2>
+              <span className="numeric text-[12px] text-chalk-3">
+                {post.commentsCount}
+              </span>
+            </div>
+
+            {currentUser ? (
+              <div className="border border-rule bg-recess p-3">
+                <Textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Constructive, specific, kind."
+                  className="min-h-[72px] resize-y border-0 bg-transparent p-0 focus-visible:outline-none"
+                  maxLength={1000}
+                  disabled={postingComment}
+                />
+                <div className="mt-2 flex items-center justify-between gap-3 border-t border-rule pt-2">
+                  <p className="text-[11px] text-chalk-3">Posted as Anonymous.</p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddComment}
+                    disabled={postingComment || !newComment.trim()}
+                    loading={postingComment}
+                  >
+                    <Send className="size-3.5" />
+                    Note
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-chalk-3">Sign in to leave a note.</p>
+            )}
+
+            <div className="mt-4 space-y-3">
+              {comments.length === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="No notes yet."
+                  description="Be the first reader to leave one."
+                  className="py-8"
+                />
+              ) : (
+                comments.map((c) => {
+                  const canDelete =
+                    !!currentUser &&
+                    (c.authorUid === currentUser.uid || isAuthor);
+                  return (
+                    <div key={c.id} className="border border-rule bg-notice px-3 py-2.5">
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-chalk-3">
+                        <span>Anonymous</span>
+                        <div className="flex items-center gap-2">
+                          {c.createdAt && (
+                            <span className="numeric">
+                              {c.createdAt.toLocaleString(undefined, {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })}
+                            </span>
+                          )}
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteComment(c)}
+                              className="rounded-control p-1 text-chalk-3 hover:bg-clay-wash hover:text-clay"
+                              title="Delete note"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-chalk-2">
+                        {c.content}
+                      </p>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </section>
+        </aside>
       </div>
-    </div>
+    </AppPage>
   );
 };
 
-const SummaryStat = ({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  icon?: React.ReactNode;
-}) => (
-  <div className="rounded-xl border border-white/10 bg-[#0A0D17]/60 px-4 py-3">
-    <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-gray-500">
-      {icon}
-      {label}
-    </div>
-    <p className="text-2xl font-bold text-white tabular-nums mt-1">{value}</p>
-  </div>
-);
-
-const Stat = ({
-  label,
-  value,
-  full,
-}: {
-  label: string;
-  value: string | number;
-  full?: boolean;
-}) => (
-  <div
-    className={`rounded-lg border border-white/10 bg-[#0A0D17]/60 px-4 py-3 ${
-      full ? "sm:col-span-2" : ""
-    }`}
-  >
-    <p className="text-[10px] uppercase tracking-wider text-gray-500">
-      {label}
-    </p>
-    <p className="text-white text-sm font-medium mt-0.5 truncate">{value}</p>
-  </div>
-);
-
-const Block = ({
+function PacketBlock({
   label,
   body,
   mono,
@@ -828,22 +686,20 @@ const Block = ({
   label: string;
   body: string;
   mono?: boolean;
-}) => {
+}) {
   if (!body) return null;
   return (
-    <div className="mt-5">
-      <p className="text-[11px] uppercase tracking-wider text-gray-500 mb-1.5">
-        {label}
-      </p>
+    <section className="mt-8">
+      <h3 className="mb-2 text-[13px] font-semibold text-chalk">{label}</h3>
       <div
-        className={`rounded-xl border border-white/10 bg-[#0A0D17]/60 px-4 py-3 text-sm text-gray-200 whitespace-pre-wrap break-words leading-relaxed ${
+        className={`whitespace-pre-wrap break-words border border-rule bg-recess px-4 py-3 text-sm leading-relaxed text-chalk-2 ${
           mono ? "font-mono text-[13px]" : ""
         }`}
       >
         {body}
       </div>
-    </div>
+    </section>
   );
-};
+}
 
 export default RateYourChanceDetail;

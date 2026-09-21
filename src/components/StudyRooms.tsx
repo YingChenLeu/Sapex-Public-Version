@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSidebar } from "./SideBar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
@@ -35,6 +34,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { incrementUsage } from "@/lib/stats";
+import { AppPage, PageHeader } from "@/components/ui/app-shell";
+import { EmptyState, InlineError, LoadingState } from "@/components/ui/states";
 
 const STUDY_SESSIONS_COLLECTION = "studySessions";
 
@@ -85,7 +86,6 @@ export type StudySession = {
 };
 
 const StudyRooms = () => {
-  const { collapsed } = useSidebar();
   const [subject, setSubject] = useState("");
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -206,175 +206,143 @@ const StudyRooms = () => {
   const ease = [0.4, 0, 0.2, 1] as const;
 
   return (
-    <div
-      className={`bg-[#0A0D17] pt-[30px] min-h-screen pb-16 transition-all duration-300 ${
-        collapsed ? "pl-[74px] sm:pl-[96px]" : "pl-[220px] xl:pl-[280px]"
-      }`}
-    >
-      <div className="px-4 max-w-4xl">
-        <motion.header
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease }}
-        >
-          <h1 className="text-3xl font-bold text-white font-syncopate tracking-tight">
-            Study Rooms
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Create a study session by subject and join others to focus together.
-          </p>
-        </motion.header>
+    <AppPage>
+      <PageHeader
+        margin="study rooms"
+        title="Study Rooms"
+        description="Open a room for a subject and work alongside people."
+      />
 
-        {/* Create session form */}
-        <motion.form
-          onSubmit={handleCreate}
-          className="mt-8 p-6 rounded-xl border border-white/10 bg-[#12162A]/80 backdrop-blur-sm"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.08, ease }}
-        >
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <BookOpen
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7CDCBD]/70"
-                aria-hidden
-              />
-              <Input
-                type="text"
-                placeholder="Enter subject (e.g. Calculus, Biology, English)"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="pl-10 h-11 bg-[#0A0D17] border-white/15 text-white placeholder:text-gray-500 focus-visible:ring-[#7CDCBD]/50 focus-visible:border-[#7CDCBD]/50"
-                maxLength={80}
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={!subject.trim() || creating}
-              className="h-11 px-6 bg-[#7CDCBD] hover:bg-[#5FBFAA] text-[#0A0D17] font-medium shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              {creating ? "Creating…" : "Create session"}
-            </Button>
+      <motion.form
+        onSubmit={handleCreate}
+        className="border border-rule bg-notice p-5"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.08, ease }}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <BookOpen
+              className="absolute left-3 top-1/2 w-4 h-4 -translate-y-1/2 text-sage"
+              aria-hidden
+            />
+            <Input
+              type="text"
+              placeholder="Subject — Calculus, Biology, English"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="h-11 pl-10"
+              maxLength={80}
+            />
           </div>
-          {createError && (
-            <p className="mt-3 text-sm text-red-400" role="alert">
-              {createError}
-            </p>
-          )}
-        </motion.form>
+          <Button
+            type="submit"
+            disabled={!subject.trim() || creating}
+            loading={creating}
+            className="h-11 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            {creating ? "Creating…" : "Create session"}
+          </Button>
+        </div>
+        {createError && (
+          <InlineError className="mt-3">{createError}</InlineError>
+        )}
+      </motion.form>
 
-        {/* Study sessions list */}
-        <motion.div
-          className="mt-10"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.16, ease }}
-        >
-          <h2 className="text-lg font-semibold text-white/90 mb-4 flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#7CDCBD]" />
-            Study sessions
-          </h2>
+      <motion.div
+        className="mt-10"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.16, ease }}
+      >
+        <h2 className="mb-4 flex items-center gap-2 text-[13px] font-semibold text-chalk">
+          <Users className="w-4 h-4 text-sage" />
+          Study sessions
+        </h2>
 
-          {loading ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, ease }}
-              className="rounded-xl border border-white/10 bg-[#12162A]/40 p-12 text-center"
-            >
-              <p className="text-gray-400">Loading study sessions…</p>
-            </motion.div>
-          ) : sessions.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, ease }}
-              className="rounded-xl border border-dashed border-white/20 bg-[#12162A]/40 p-12 text-center"
-            >
-              <BookOpen className="w-12 h-12 text-white/20 mx-auto mb-3" />
-              <p className="text-gray-400">No study sessions yet.</p>
-              <p className="text-sm text-gray-500 mt-1">
-                Enter a subject above and click Create session to start one.
-              </p>
-            </motion.div>
-          ) : (
-            <ul className="space-y-4">
-              <AnimatePresence mode="popLayout">
-                {sessions.map((session, index) => (
-                  <motion.li
-                    key={session.id}
-                    layout
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
-                    transition={{
-                      duration: 0.3,
-                      delay: index * 0.04,
-                      ease,
-                    }}
-                  >
-                    <Card className="border-white/10 bg-[#12162A]/80 overflow-hidden hover:border-[#7CDCBD]/30 transition-colors">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-medium text-white flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-[#7CDCBD]" />
-                          {session.subject}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pb-2">
-                        <p className="text-sm text-gray-400 flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5" />
-                          Created{" "}
-                          {formatDistanceToNow(session.createdAt, {
-                            addSuffix: true,
-                          })}
-                        </p>
-                        <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-1">
-                          <User className="w-3 h-3" />
-                          by {session.createdBy.displayName}
-                        </p>
-                        <p className="text-xs text-[#7CDCBD]/90 flex items-center gap-1.5 mt-1.5">
-                          <Video className="w-3 h-3" />
-                          Jitsi video room
-                        </p>
-                      </CardContent>
-                      <CardFooter className="pt-0 flex flex-wrap items-center gap-2">
+        {loading ? (
+          <LoadingState label="Loading study sessions…" />
+        ) : sessions.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="No study sessions yet"
+            description="Enter a subject above and create a session to start one."
+          />
+        ) : (
+          <ul className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {sessions.map((session, index) => (
+                <motion.li
+                  key={session.id}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: index * 0.04,
+                    ease,
+                  }}
+                >
+                  <Card interactive>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-2">
+                        <span className="size-2 rounded-full bg-signal" />
+                        {session.subject}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pb-2">
+                      <p className="flex items-center gap-1.5 text-sm text-chalk-2">
+                        <Clock className="w-3.5 h-3.5" />
+                        Created{" "}
+                        {formatDistanceToNow(session.createdAt, {
+                          addSuffix: true,
+                        })}
+                      </p>
+                      <p className="mt-1 flex items-center gap-1.5 text-xs text-chalk-3">
+                        <User className="w-3 h-3" />
+                        by {session.createdBy.displayName}
+                      </p>
+                      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-sage">
+                        <Video className="w-3 h-3" />
+                        Jitsi video room
+                      </p>
+                    </CardContent>
+                    <CardFooter className="flex flex-wrap items-center gap-2 pt-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          window.open(
+                            session.meetLink,
+                            "_blank",
+                            "noopener,noreferrer",
+                          )
+                        }
+                      >
+                        <Video className="w-3.5 h-3.5" />
+                        Join video
+                      </Button>
+                      {currentUserId === session.createdBy.uid && (
                         <Button
-                          variant="outline"
+                          variant="destructive-ghost"
                           size="sm"
-                          className="border-[#7CDCBD]/40 text-[#7CDCBD] hover:bg-[#7CDCBD]/10 hover:border-[#7CDCBD]/60"
-                          onClick={() =>
-                            window.open(
-                              session.meetLink,
-                              "_blank",
-                              "noopener,noreferrer",
-                            )
-                          }
+                          onClick={() => handleDelete(session.id)}
+                          disabled={deletingId === session.id}
                         >
-                          <Video className="w-3.5 h-3.5 mr-1.5" />
-                          Join video
+                          <Trash2 className="w-3.5 h-3.5" />
+                          {deletingId === session.id ? "Deleting…" : "Delete"}
                         </Button>
-                        {currentUserId === session.createdBy.uid && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-red-500/40 text-red-400 hover:bg-red-500/10 hover:border-red-500/60"
-                            onClick={() => handleDelete(session.id)}
-                            disabled={deletingId === session.id}
-                          >
-                            <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                            {deletingId === session.id ? "Deleting…" : "Delete"}
-                          </Button>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </ul>
-          )}
-        </motion.div>
-      </div>
+                      )}
+                    </CardFooter>
+                  </Card>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </ul>
+        )}
+      </motion.div>
 
       {/* Full-screen Jitsi overlay (iframe version – commented out; using redirect instead) */}
       {/* <AnimatePresence>
@@ -438,7 +406,7 @@ const StudyRooms = () => {
           </>
         )}
       </AnimatePresence> */}
-    </div>
+    </AppPage>
   );
 };
 

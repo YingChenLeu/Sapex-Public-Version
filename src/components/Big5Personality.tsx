@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useSidebar } from "./SideBar";
+import { AppPage, PageHeader } from "@/components/ui/app-shell";
 
 const PersonalityQuiz = () => {
   const navigate = useNavigate();
@@ -160,37 +160,36 @@ const PersonalityQuiz = () => {
     { value: "4", label: "Agree" },
     { value: "5", label: "Strongly Agree" },
   ];
-  const { collapsed } = useSidebar();
 
   const answeredCount = Object.keys(responses).length;
   const progressPercent = (answeredCount / 44) * 100;
 
   return (
-    <div
-      className={`min-h-screen bg-[#0A0D17] text-white pt-[30px] transition-all duration-300 ${
-        collapsed ? "pl-[0px]" : "pl-[20px]"
-      }`}
-    >
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center mb-8 pt-4">
-          <button
-            onClick={() => navigate("/user-profile")}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all mr-4"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-3xl font-bold">Personality Quiz</h1>
-        </div>
+    <AppPage>
+      <div className="mb-8 flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/user-profile")}
+          aria-label="Back to profile"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <PageHeader
+          margin="profile"
+          title="Personality quiz"
+          description="Rate how much you agree with each statement."
+          className="mb-0 flex-1"
+        />
+      </div>
 
-        {/* Quiz Form */}
-        <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-2xl text-white flex items-center">
-              <Brain className="w-6 h-6 mr-3 text-blue-400" />
-              Personality Assessment
+            <CardTitle className="flex items-center text-xl">
+              <Brain className="mr-3 h-5 w-5 text-sage" />
+              Personality assessment
             </CardTitle>
-            <p className="text-gray-300">
+            <p className="text-chalk-2">
               Rate how much you agree with each statement about yourself
             </p>
           </CardHeader>
@@ -198,19 +197,19 @@ const PersonalityQuiz = () => {
           <CardContent>
             {/* Progress Bar */}
             <div className="mb-4 sticky top-0 py-2 z-10">
-              <div className="w-full bg-white/20 rounded-full h-3">
+              <div className="h-2 w-full rounded-full bg-recess">
                 <div
-                  className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                  className="h-2 rounded-full bg-sage transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <div className="text-white text-sm mt-1">
+              <div className="numeric mt-1 text-sm text-chalk-2">
                 {answeredCount} / 44 answered
               </div>
             </div>
 
             {unanswered.length > 0 && (
-              <p className="text-red-400 mb-4">
+              <p className="mb-4 text-clay">
                 Please answer all questions. You missed: {unanswered.map(i => i+1).join(", ")}
               </p>
             )}
@@ -219,11 +218,11 @@ const PersonalityQuiz = () => {
               {personalityTraits.map((trait, index) => (
                 <div
                   key={index}
-                  className={`space-y-4 p-6 rounded-lg bg-white/5 border ${
-                    unanswered.includes(index) ? "border-red-500" : "border-white/10"
+                  className={`space-y-4 rounded-notice border bg-recess p-6 ${
+                    unanswered.includes(index) ? "border-clay" : "border-rule"
                   }`}
                 >
-                  <Label className="text-white text-lg font-medium">
+                  <Label className="text-lg font-medium text-chalk">
                     {index + 1}. {trait}
                   </Label>
 
@@ -237,23 +236,23 @@ const PersonalityQuiz = () => {
                     {scaleOptions.map((option) => (
                       <div
                         key={option.value}
-                        className="flex items-center space-x-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-200"
+                        className="flex items-center space-x-2 rounded-control border border-rule bg-notice p-3 transition-all duration-200 hover:border-rule-strong"
                       >
                         <RadioGroupItem
                           value={option.value}
                           id={`q${index}-${option.value}`}
-                          className="border-white/30 text-blue-400 transition-all duration-200"
+                          className="transition-all duration-200"
                         />
                         <Label
                           htmlFor={`q${index}-${option.value}`}
-                          className={`text-white text-sm cursor-pointer flex-1 text-center transition-all duration-200 transform ${
+                          className={`flex-1 cursor-pointer text-center text-sm transition-all duration-200 ${
                             responses[index] === option.value
-                              ? "scale-105 text-blue-300 font-semibold"
-                              : "hover:scale-102"
+                              ? "scale-105 font-semibold text-sage"
+                              : "text-chalk-2 hover:scale-102"
                           }`}
                         >
                           <div className="font-medium">{option.value}</div>
-                          <div className="text-xs text-gray-300 mt-1">
+                          <div className="mt-1 text-xs text-chalk-3">
                             {option.label}
                           </div>
                         </Label>
@@ -267,16 +266,15 @@ const PersonalityQuiz = () => {
               <div className="flex justify-center pt-8">
                 <Button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all"
+                  size="lg"
                 >
-                  Complete Assessment
+                  Complete assessment
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </AppPage>
   );
 };
 
